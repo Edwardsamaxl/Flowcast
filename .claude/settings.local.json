@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls *)",
+      "Bash(find \"E:\\\\\\\\CursorProject\\\\\\\\xiangwoxie\\\\\\\\.omc\" -type f)",
+      "Bash(npm run *)"
+    ]
+  }
+}

@@ -1,0 +1,291 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1779704517967,
+  "projectRoot": "E:\\CursorProject\\xiangwoxie",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "next",
+        "version": "16.2.6",
+        "category": "fullstack"
+      },
+      {
+        "name": "react",
+        "version": "18.3.1",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "18.3.1",
+        "category": "frontend"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": null,
+    "lintCommand": "npm run lint",
+    "devCommand": "npm run dev",
+    "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "start": "next start",
+      "lint": "eslint ."
+    }
+  },
+  "conventions": {
+    "namingStyle": "camelCase",
+    "importStyle": "ES modules",
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "app",
+      "components",
+      "lib"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "app": {
+      "path": "app",
+      "purpose": "Application code",
+      "fileCount": 4,
+      "lastAccessed": 1779704517916,
+      "keyFiles": [
+        "globals.css",
+        "layout.tsx",
+        "not-found.tsx",
+        "page.tsx"
+      ]
+    },
+    "artifacts": {
+      "path": "artifacts",
+      "purpose": null,
+      "fileCount": 8,
+      "lastAccessed": 1779704517928,
+      "keyFiles": [
+        "calibrate-mobile-nav.png",
+        "calibrate-mobile.png",
+        "calibrate-web.png",
+        "home-desktop.png",
+        "home-mobile.png"
+      ]
+    },
+    "components": {
+      "path": "components",
+      "purpose": "UI components",
+      "fileCount": 2,
+      "lastAccessed": 1779704517930,
+      "keyFiles": [
+        "app-shell.tsx",
+        "ui.tsx"
+      ]
+    },
+    "lib": {
+      "path": "lib",
+      "purpose": "Library code",
+      "fileCount": 2,
+      "lastAccessed": 1779704517931,
+      "keyFiles": [
+        "data.ts",
+        "utils.ts"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "app\\calibrate\\page.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1779706346109,
+      "type": "file"
+    },
+    {
+      "path": "app\\library\\page.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1779706346019,
+      "type": "file"
+    },
+    {
+      "path": "app\\globals.css",
+      "accessCount": 4,
+      "lastAccessed": 1779706345954,
+      "type": "file"
+    },
+    {
+      "path": "app\\page.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1779706236433,
+      "type": "file"
+    },
+    {
+      "path": "像我写-PRD.md",
+      "accessCount": 2,
+      "lastAccessed": 1779704685622,
+      "type": "file"
+    },
+    {
+      "path": "tailwind.config.ts",
+      "accessCount": 2,
+      "lastAccessed": 1779704685771,
+      "type": "file"
+    },
+    {
+      "path": "app\\layout.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1779704692509,
+      "type": "file"
+    },
+    {
+      "path": "components\\app-shell.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1779704692609,
+      "type": "file"
+    },
+    {
+      "path": "components\\ui.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1779704692682,
+      "type": "file"
+    },
+    {
+      "path": "lib\\data.ts",
+      "accessCount": 2,
+      "lastAccessed": 1779704692741,
+      "type": "file"
+    },
+    {
+      "path": "app\\onboarding\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1779704699715,
+      "type": "file"
+    },
+    {
+      "path": "app\\create\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1779704699941,
+      "type": "file"
+    },
+    {
+      "path": "app\\drafts\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1779704700084,
+      "type": "file"
+    },
+    {
+      "path": "app\\not-found.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1779704700165,
+      "type": "file"
+    },
+    {
+      "path": "components\\voice-profile.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1779706296968,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 1,
+      "lastAccessed": 1779704564159,
+      "type": "file"
+    },
+    {
+      "path": "tsconfig.json",
+      "accessCount": 1,
+      "lastAccessed": 1779704564342,
+      "type": "file"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "accessCount": 1,
+      "lastAccessed": 1779704564434,
+      "type": "file"
+    },
+    {
+      "path": "postcss.config.mjs",
+      "accessCount": 1,
+      "lastAccessed": 1779704564585,
+      "type": "file"
+    },
+    {
+      "path": "next.config.mjs",
+      "accessCount": 1,
+      "lastAccessed": 1779704564644,
+      "type": "file"
+    },
+    {
+      "path": "lib\\utils.ts",
+      "accessCount": 1,
+      "lastAccessed": 1779704574128,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\Ed\\.claude\\skills\\design\\references\\design-reference.md",
+      "accessCount": 1,
+      "lastAccessed": 1779704709199,
+      "type": "file"
+    },
+    {
+      "path": "DESIGN.md",
+      "accessCount": 1,
+      "lastAccessed": 1779705463680,
+      "type": "file"
+    },
+    {
+      "path": "components\\textured-bg.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1779706201705,
+      "type": "file"
+    },
+    {
+      "path": "components\\feedback-tag.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1779706202608,
+      "type": "file"
+    },
+    {
+      "path": "components\\empty-state.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1779706203512,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 1,
+      "lastAccessed": 1779706292013,
+      "type": "directory"
+    },
+    {
+      "path": "components\\feedback-bar.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1779706330117,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
