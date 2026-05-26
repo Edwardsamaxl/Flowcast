@@ -1,7 +1,6 @@
 import {
   BookOpenText,
   History,
-  Home,
   LibraryBig,
   MessageSquareQuote,
   PenLine,
@@ -13,7 +12,6 @@ import type { LucideIcon } from "lucide-react";
 export type Platform = "xiaohongshu" | "zhihu" | "x";
 
 export const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
-  { href: "/", label: "首页", icon: Home },
   { href: "/library", label: "资产库", icon: LibraryBig },
   { href: "/create", label: "拆解内容", icon: PenLine },
   { href: "/history", label: "历史", icon: History }

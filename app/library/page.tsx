@@ -8,8 +8,8 @@ export default function LibraryPage() {
   return (
     <AppShell
       eyebrow="资产库"
-      title="管理当前在记录谁的声纹"
-      description="上传视频后先解析，不自动写入人物画像。用户确认候选观点、语气和结构后，才会更新当前人物档案。"
+      title="管理当前人物画像"
+      description="上传视频后先解析，不自动写入人物画像。用户确认候选观点、语气和结构后，才会更新当前人物资产。"
       actionLabel="上传到资产库"
     >
       <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">

@@ -60,6 +60,11 @@ export type GeneratedPlatformDraft = {
   title: string;
   content: string;
   notes: string[];
+  voice_alignment?: {
+    matched_traits: string[];
+    conflicts: string[];
+    suggestions: string[];
+  };
 };
 
 export type FeedbackScope = "current_draft" | "voice_profile";

@@ -60,3 +60,30 @@ export function buildPlatformRewritePrompt(params: {
     params.transcript
   ].join("\n");
 }
+
+export function buildVoiceAlignedRewritePrompt(params: {
+  transcript: string;
+  analysis: unknown;
+  platform: Platform;
+  voiceProfile?: VoiceProfile;
+}): string {
+  const platformRule = params.voiceProfile?.platform_rules[params.platform] ?? defaultPlatformRules[params.platform];
+
+  return [
+    "你是中文知识创作者的视频内容流转助手。",
+    "你的任务不是泛泛改写，而是先判断这条视频内容与所选人物画像的关系，再按目标平台写成可发布文案。",
+    "请输出严格 JSON，不要输出 Markdown。",
+    "JSON 字段必须包含：platform, title, content, notes, voice_alignment。",
+    "voice_alignment 必须包含：matched_traits, conflicts, suggestions。",
+    "matched_traits 表示视频内容与人物画像一致的观点、语气、结构或禁用表达遵守情况。",
+    "conflicts 表示视频内容或生成稿可能与人物画像冲突的地方。",
+    "suggestions 表示为了更像该人物，本次改写采用的调整。",
+    `目标平台：${platformNames[params.platform]} (${params.platform})`,
+    `平台规则：${platformRule}`,
+    params.voiceProfile ? `人物画像：${JSON.stringify(params.voiceProfile)}` : "人物画像：无。请保持自然、克制、清晰。",
+    `内容分析：${JSON.stringify(params.analysis)}`,
+    "",
+    "原始转写：",
+    params.transcript
+  ].join("\n");
+}

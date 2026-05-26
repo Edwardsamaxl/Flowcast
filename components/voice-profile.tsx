@@ -13,7 +13,7 @@ export function VoiceProfile() {
       <div className="rounded-[8px] bg-paper-0 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)]">
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-paper-200 pb-4">
           <div>
-            <p className="text-xs font-medium text-seal-500">人物声纹档案</p>
+            <p className="text-xs font-medium text-seal-500">人物画像</p>
             <h2 className="mt-2 font-editorial text-[28px] font-semibold leading-tight text-ink-950">{profile.name}</h2>
             <p className="mt-2 max-w-xl text-sm leading-6 text-ink-600">{profile.positioning}</p>
           </div>

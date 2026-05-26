@@ -86,12 +86,20 @@ ffmpeg -version
 
 | 方案 | 适合阶段 | 说明 |
 |---|---|---|
+| 本地 FunASR + ModelScope UniASR | 推荐本机 MVP | 已在本机发现中文 ASR 模型缓存，适合中文口播、课程、直播 |
 | OpenAI `gpt-4o-mini-transcribe` / `gpt-4o-transcribe` | 推荐 MVP | 接入简单，中文转写质量稳定 |
 | OpenAI `gpt-4o-transcribe-diarize` | 多人对话 | 需要说话人区分时使用 |
 | Whisper 本地模型 | 成本敏感 / 私有化 | 需要本地算力和 Python 环境 |
 | 阿里云 / 火山 / 腾讯 ASR | 国内部署 | 账号和 SDK 配置更复杂 |
 
-建议 MVP 用云端 ASR，后续再替换或增加供应商适配层。
+本机已发现：
+
+```text
+ffmpeg: C:\Users\Ed\scoop\shims\ffmpeg.exe
+FunASR/ModelScope ASR: C:\Users\Ed\.cache\modelscope\hub\models\iic\speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch
+```
+
+因此当前建议：MVP 先走本地 FunASR。OpenAI ASR 作为后续云端 fallback。
 
 ### 异步任务
 
@@ -304,17 +312,24 @@ DEEPSEEK_BASE_URL
 DEEPSEEK_MODEL
 ```
 
+DeepSeek 官方文档当前列出的模型是：
+
+- `deepseek-v4-flash`
+- `deepseek-v4-pro`
+
+旧模型名 `deepseek-chat` 和 `deepseek-reasoner` 将在 2026-07-24 停用，所以本项目不再默认使用旧模型名。
+
 建议默认：
 
 ```text
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODEL=deepseek-v4-flash
 ```
 
-如果后续要做复杂推理，可以单独加：
+质量不够时再切：
 
 ```text
-DEEPSEEK_REASONER_MODEL=deepseek-reasoner
+DEEPSEEK_MODEL=deepseek-v4-pro
 ```
 
 ## 11. 需要你配置的内容
@@ -324,15 +339,20 @@ DEEPSEEK_REASONER_MODEL=deepseek-reasoner
 ```env
 DEEPSEEK_API_KEY=
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODEL=deepseek-v4-flash
+
+ASR_PROVIDER=funasr
+FFMPEG_PATH=C:\Users\Ed\scoop\shims\ffmpeg.exe
+FUNASR_MODEL_DIR=C:\Users\Ed\.cache\modelscope\hub\models\iic\speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch
 
 APP_STORAGE_DIR=./storage
 MAX_UPLOAD_MB=500
 ```
 
-如果使用 OpenAI 做转写，再加：
+如果改用 OpenAI 做转写，再加：
 
 ```env
+ASR_PROVIDER=openai
 OPENAI_API_KEY=
 OPENAI_TRANSCRIBE_MODEL=gpt-4o-mini-transcribe
 ```
@@ -350,10 +370,25 @@ DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/flowcast?schema=public
 - Node.js 20+
 - npm
 - ffmpeg
+- Python 3.10+
+- FunASR / ModelScope / PyTorch
 
 建议：
 
 - PostgreSQL 16+
+
+需要确认：
+
+```powershell
+ffmpeg -version
+pip show funasr modelscope torch torchaudio
+```
+
+缺 Python 包时安装：
+
+```powershell
+pip install funasr modelscope torch torchaudio
+```
 
 后续需要安装的 npm 包：
 

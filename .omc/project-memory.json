@@ -119,6 +119,18 @@
   },
   "hotPaths": [
     {
+      "path": "流转-PRD.md",
+      "accessCount": 30,
+      "lastAccessed": 1779789629165,
+      "type": "file"
+    },
+    {
+      "path": "app\\page.tsx",
+      "accessCount": 14,
+      "lastAccessed": 1779789629203,
+      "type": "file"
+    },
+    {
       "path": "app\\calibrate\\page.tsx",
       "accessCount": 6,
       "lastAccessed": 1779706346109,
@@ -126,20 +138,56 @@
     },
     {
       "path": "app\\library\\page.tsx",
-      "accessCount": 5,
-      "lastAccessed": 1779706346019,
+      "accessCount": 6,
+      "lastAccessed": 1779789657000,
       "type": "file"
     },
     {
       "path": "app\\globals.css",
-      "accessCount": 4,
-      "lastAccessed": 1779706345954,
+      "accessCount": 5,
+      "lastAccessed": 1779786856008,
       "type": "file"
     },
     {
-      "path": "app\\page.tsx",
+      "path": "lib\\data.ts",
+      "accessCount": 4,
+      "lastAccessed": 1779789648252,
+      "type": "file"
+    },
+    {
+      "path": "tailwind.config.ts",
       "accessCount": 3,
-      "lastAccessed": 1779706236433,
+      "lastAccessed": 1779786850587,
+      "type": "file"
+    },
+    {
+      "path": "components\\voice-profile.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1779789648341,
+      "type": "file"
+    },
+    {
+      "path": "app\\create\\page.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1779789656967,
+      "type": "file"
+    },
+    {
+      "path": "app\\layout.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1779789657300,
+      "type": "file"
+    },
+    {
+      "path": "components\\ui.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1779789664909,
+      "type": "file"
+    },
+    {
+      "path": "components\\app-shell.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1779789664996,
       "type": "file"
     },
     {
@@ -149,45 +197,9 @@
       "type": "file"
     },
     {
-      "path": "tailwind.config.ts",
-      "accessCount": 2,
-      "lastAccessed": 1779704685771,
-      "type": "file"
-    },
-    {
-      "path": "app\\layout.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1779704692509,
-      "type": "file"
-    },
-    {
-      "path": "components\\app-shell.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1779704692609,
-      "type": "file"
-    },
-    {
-      "path": "components\\ui.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1779704692682,
-      "type": "file"
-    },
-    {
-      "path": "lib\\data.ts",
-      "accessCount": 2,
-      "lastAccessed": 1779704692741,
-      "type": "file"
-    },
-    {
       "path": "app\\onboarding\\page.tsx",
       "accessCount": 2,
       "lastAccessed": 1779704699715,
-      "type": "file"
-    },
-    {
-      "path": "app\\create\\page.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1779704699941,
       "type": "file"
     },
     {
@@ -203,15 +215,27 @@
       "type": "file"
     },
     {
-      "path": "components\\voice-profile.tsx",
+      "path": "DESIGN.md",
       "accessCount": 2,
-      "lastAccessed": 1779706296968,
+      "lastAccessed": 1779789629148,
+      "type": "file"
+    },
+    {
+      "path": "components\\feedback-bar.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1779789648424,
       "type": "file"
     },
     {
       "path": "package.json",
-      "accessCount": 1,
-      "lastAccessed": 1779704564159,
+      "accessCount": 2,
+      "lastAccessed": 1779789665295,
+      "type": "file"
+    },
+    {
+      "path": "next.config.mjs",
+      "accessCount": 2,
+      "lastAccessed": 1779789665306,
       "type": "file"
     },
     {
@@ -233,12 +257,6 @@
       "type": "file"
     },
     {
-      "path": "next.config.mjs",
-      "accessCount": 1,
-      "lastAccessed": 1779704564644,
-      "type": "file"
-    },
-    {
       "path": "lib\\utils.ts",
       "accessCount": 1,
       "lastAccessed": 1779704574128,
@@ -248,12 +266,6 @@
       "path": "C:\\Users\\Ed\\.claude\\skills\\design\\references\\design-reference.md",
       "accessCount": 1,
       "lastAccessed": 1779704709199,
-      "type": "file"
-    },
-    {
-      "path": "DESIGN.md",
-      "accessCount": 1,
-      "lastAccessed": 1779705463680,
       "type": "file"
     },
     {
@@ -281,9 +293,69 @@
       "type": "directory"
     },
     {
-      "path": "components\\feedback-bar.tsx",
+      "path": "data\\ig_09866bd2260b4cb2016a154a315b108191841c750cf1fcfc83.png",
       "accessCount": 1,
-      "lastAccessed": 1779706330117,
+      "lastAccessed": 1779789129039,
+      "type": "file"
+    },
+    {
+      "path": "data\\ig_concept_small.png",
+      "accessCount": 1,
+      "lastAccessed": 1779789259539,
+      "type": "file"
+    },
+    {
+      "path": "app",
+      "accessCount": 1,
+      "lastAccessed": 1779789640527,
+      "type": "directory"
+    },
+    {
+      "path": "lib",
+      "accessCount": 1,
+      "lastAccessed": 1779789640566,
+      "type": "directory"
+    },
+    {
+      "path": "components",
+      "accessCount": 1,
+      "lastAccessed": 1779789640637,
+      "type": "directory"
+    },
+    {
+      "path": "lib\\pipeline\\types.ts",
+      "accessCount": 1,
+      "lastAccessed": 1779789648123,
+      "type": "file"
+    },
+    {
+      "path": "lib\\pipeline\\llm.ts",
+      "accessCount": 1,
+      "lastAccessed": 1779789648174,
+      "type": "file"
+    },
+    {
+      "path": "lib\\pipeline\\prompts.ts",
+      "accessCount": 1,
+      "lastAccessed": 1779789648487,
+      "type": "file"
+    },
+    {
+      "path": "app\\history\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1779789657114,
+      "type": "file"
+    },
+    {
+      "path": "lib\\server\\deepseek.ts",
+      "accessCount": 1,
+      "lastAccessed": 1779789657186,
+      "type": "file"
+    },
+    {
+      "path": "lib\\server\\env.ts",
+      "accessCount": 1,
+      "lastAccessed": 1779789657258,
       "type": "file"
     }
   ],

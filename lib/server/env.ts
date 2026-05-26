@@ -2,7 +2,9 @@ type EnvConfig = {
   deepseekApiKey?: string;
   deepseekBaseUrl: string;
   deepseekModel: string;
-  deepseekReasonerModel: string;
+  asrProvider: "funasr" | "openai";
+  ffmpegPath: string;
+  funasrModelDir?: string;
   openaiApiKey?: string;
   openaiTranscribeModel: string;
   appStorageDir: string;
@@ -18,11 +20,15 @@ function numberFromEnv(value: string | undefined, fallback: number): number {
 }
 
 export function getEnv(): EnvConfig {
+  const asrProvider = process.env.ASR_PROVIDER === "openai" ? "openai" : "funasr";
+
   return {
     deepseekApiKey: process.env.DEEPSEEK_API_KEY,
     deepseekBaseUrl: process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com",
-    deepseekModel: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
-    deepseekReasonerModel: process.env.DEEPSEEK_REASONER_MODEL ?? "deepseek-reasoner",
+    deepseekModel: process.env.DEEPSEEK_MODEL ?? "deepseek-v4-flash",
+    asrProvider,
+    ffmpegPath: process.env.FFMPEG_PATH ?? "ffmpeg",
+    funasrModelDir: process.env.FUNASR_MODEL_DIR,
     openaiApiKey: process.env.OPENAI_API_KEY,
     openaiTranscribeModel: process.env.OPENAI_TRANSCRIBE_MODEL ?? "gpt-4o-mini-transcribe",
     appStorageDir: process.env.APP_STORAGE_DIR ?? "./storage",

@@ -3,7 +3,26 @@
     "allow": [
       "Bash(ls *)",
       "Bash(find \"E:\\\\\\\\CursorProject\\\\\\\\xiangwoxie\\\\\\\\.omc\" -type f)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git config *)",
+      "Bash(netstat -ano)",
+      "Bash(git push *)",
+      "Bash(git remote *)",
+      "Bash(npx tsc *)",
+      "Bash(npx next *)",
+      "mcp__plugin_everything-claude-code_playwright__browser_navigate",
+      "Bash(curl -s http://localhost:3000)",
+      "WebSearch",
+      "WebFetch(domain:brandfetch.com)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "Bash(curl -L -o E:/CursorProject/Flowcast/public/logos/douyin.svg \"https://upload.wikimedia.org/wikipedia/commons/5/5d/Douyin_logo.svg\")",
+      "Bash(curl -L -o E:/CursorProject/Flowcast/public/logos/bilibili.svg \"https://upload.wikimedia.org/wikipedia/commons/0/0e/Bilibili_2023.svg\")",
+      "Bash(curl -L -o E:/CursorProject/Flowcast/public/logos/zhihu.svg \"https://upload.wikimedia.org/wikipedia/commons/f/fb/Zhihu_logo.svg\")",
+      "Bash(curl -L -o E:/CursorProject/Flowcast/public/logos/x.svg \"https://upload.wikimedia.org/wikipedia/commons/5/53/X_logo_2023_original.svg\")",
+      "Bash(curl -v -L -o E:/CursorProject/Flowcast/public/logos/x.svg \"https://upload.wikimedia.org/wikipedia/commons/5/53/X_logo_2023_original.svg\")",
+      "Bash(curl *)",
+      "Bash(convert \"E:/CursorProject/Flowcast/data/ig_09866bd2260b4cb2016a154a315b108191841c750cf1fcfc83.png\" -resize 1200x -quality 85 \"E:/CursorProject/Flowcast/data/ig_concept.jpg\")",
+      "mcp__plugin_oh-my-claudecode_t__python_repl"
     ]
   }
 }
