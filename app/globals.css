@@ -18,8 +18,11 @@ html {
 
 body {
   margin: 0;
-  background: oklch(97% 0.004 245);
-  color: oklch(18% 0.018 255);
+  background:
+    linear-gradient(90deg, rgba(32, 27, 23, 0.025) 1px, transparent 1px),
+    linear-gradient(180deg, #fffdf8 0%, #f8f3ea 100%);
+  background-size: 32px 32px, 100% 100%;
+  color: #201b17;
   font-family:
     "Noto Sans SC",
     "PingFang SC",
@@ -37,15 +40,15 @@ select {
 }
 
 ::selection {
-  background: oklch(94% 0.025 250);
-  color: oklch(18% 0.018 255);
+  background: #f8e8df;
+  color: #201b17;
 }
 
 .font-editorial {
   font-family:
-    "LXGW WenKai Screen",
-    "Kaiti SC",
-    "STKaiti",
+    "Noto Serif SC",
+    "Songti SC",
+    "SimSun",
     serif;
 }
 

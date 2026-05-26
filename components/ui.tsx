@@ -11,9 +11,9 @@ export function Metric({
   helper: string;
 }) {
   return (
-    <div className="rounded-card bg-surface-0 p-4 shadow-ring">
+    <div className="rounded-card border border-paper-200 bg-paper-0 p-4 shadow-sheet">
       <p className="text-xs text-ink-600">{label}</p>
-      <p className="mt-2 text-4xl font-semibold tracking-[-0.022em] tabular">{value}</p>
+      <p className="mt-2 font-editorial text-4xl font-semibold tracking-[-0.01em] tabular">{value}</p>
       <p className="mt-1 text-xs text-ink-400">{helper}</p>
     </div>
   );
@@ -30,8 +30,8 @@ export function SectionTitle({
 }) {
   return (
     <div className="mb-4 flex flex-col gap-1">
-      {kicker ? <p className="text-xs font-medium text-calibrate-600">{kicker}</p> : null}
-      <h2 className="text-[22px] font-semibold leading-[1.25] tracking-[-0.012em] text-ink-950">{title}</h2>
+      {kicker ? <p className="text-xs font-medium text-seal-500">{kicker}</p> : null}
+      <h2 className="font-editorial text-[24px] font-semibold leading-[1.2] tracking-[-0.01em] text-ink-950">{title}</h2>
       {description ? <p className="max-w-2xl text-sm leading-6 text-ink-600 pretty">{description}</p> : null}
     </div>
   );
@@ -49,8 +49,8 @@ export function IconPill({
   return (
     <span
       className={cn(
-        "inline-flex min-h-10 items-center gap-2 rounded-button px-3 text-sm shadow-ring",
-        active ? "bg-surface-0 text-calibrate-600" : "bg-surface-50 text-ink-600"
+        "inline-flex min-h-10 items-center gap-2 rounded-button border px-3 text-sm",
+        active ? "border-seal-500 bg-seal-50 text-seal-600" : "border-paper-200 bg-paper-0 text-ink-600"
       )}
     >
       <Icon className="size-4" aria-hidden="true" />
@@ -72,7 +72,7 @@ export function TextareaBlock({
     <label className="block">
       <span className="text-sm font-medium text-ink-800">{label}</span>
       <textarea
-        className="mt-2 w-full resize-none rounded-card bg-surface-0 p-4 text-sm leading-7 text-ink-800 shadow-ring outline-none transition-[box-shadow] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-calibrate-500/25"
+        className="mt-2 w-full resize-none rounded-card border border-paper-200 bg-paper-0 p-4 text-[15px] leading-7 text-ink-800 outline-none transition-[border-color,box-shadow] duration-200 ease-out focus-visible:border-seal-500 focus-visible:ring-2 focus-visible:ring-seal-500/20"
         rows={rows}
         defaultValue={value}
       />

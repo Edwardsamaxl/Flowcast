@@ -13,7 +13,7 @@ import {
 export type Platform = "xiaohongshu" | "zhihu" | "x";
 
 export const navItems = [
-  { href: "/", label: "工作台", icon: Sparkles },
+  { href: "/", label: "编辑台", icon: Sparkles },
   { href: "/library", label: "资产库", icon: LibraryBig },
   { href: "/create", label: "创作", icon: PenLine },
   { href: "/calibrate", label: "校准", icon: FilePenLine },
@@ -23,7 +23,7 @@ export const navItems = [
 export const stats = [
   { label: "已转录内容", value: "12", helper: "小时口播与课程" },
   { label: "可复用观点", value: "46", helper: "条方法论与判断" },
-  { label: "平均改稿时间", value: "8.6", helper: "分钟 / 条" }
+  { label: "平均改稿时间", value: "8.6", helper: "分钟 / 篇" }
 ];
 
 export const transcripts = [
@@ -64,7 +64,7 @@ export const voiceProfile = {
   positioning: "用亲身经验帮助普通学生制定可执行的备考策略",
   tone: ["直接", "温和", "有经验感", "不制造焦虑"],
   beliefs: [
-    "学习计划必须能落地，否则再完美也没用",
+    "学习计划必须能落地，否则再完美也没有用",
     "普通学生更需要稳定执行，而不是追求极限方法",
     "真正的效率感来自可重复，而不是某一天的爆发"
   ],
@@ -94,7 +94,7 @@ export const workflow = [
   { title: "上传长内容", detail: "本地视频、直播回放或课程录屏", icon: UploadCloud },
   { title: "沉淀表达资产", detail: "观点、案例、禁用词和转化方式", icon: LibraryBig },
   { title: "拆成平台内容", detail: "小红书、知乎、X 三种版本", icon: PenLine },
-  { title: "反馈让它更像你", detail: "把改稿偏好写回声纹画像", icon: ShieldCheck }
+  { title: "反馈让它更像你", detail: "把改稿偏好写回表达画像", icon: ShieldCheck }
 ];
 
 export const generatedDraft = {
@@ -103,8 +103,8 @@ export const generatedDraft = {
   body:
     "很多人做计划的时候，默认自己每天都精神很好、时间完整、没有临时任务。\n\n问题是，备考不是在理想状态里发生的。\n\n你真正要做的不是把计划排满，而是先设计一个“最差状态也能完成”的版本。比如今天只能学 90 分钟，那这 90 分钟里最不能丢的是什么？先把它保住。\n\n计划能落地，比计划看起来厉害重要得多。",
   warnings: [
-    "标题可以再克制一点，避免“最容易高估”显得过度下判断。",
-    "第二段已经调用到执行力观点，但还可以加入一个真实学生案例。",
+    "标题可以再克制一点，避免“最容易高估”显得判断过重。",
+    "第二段已经调到执行力观点，但还可以加入一个真实学生案例。",
     "CTA 暂时为空，适合在真实发布前按资料包策略补一句。"
   ]
 };

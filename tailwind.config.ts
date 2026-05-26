@@ -9,52 +9,44 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: {
-          0: "oklch(99% 0.003 245)",
-          50: "oklch(97% 0.004 245)",
-          100: "oklch(94% 0.006 245)"
-        },
-        surface: {
-          0: "oklch(100% 0.002 245)",
-          50: "oklch(96% 0.005 245)",
-          100: "oklch(91% 0.007 245)"
+        paper: {
+          0: "#fffdf8",
+          50: "#f8f3ea",
+          100: "#efe7d9",
+          200: "#ded2bf"
         },
         ink: {
-          950: "oklch(18% 0.018 255)",
-          800: "oklch(28% 0.016 255)",
-          600: "oklch(45% 0.014 255)",
-          400: "oklch(64% 0.012 255)"
+          950: "#201b17",
+          800: "#3f352d",
+          600: "#75685a",
+          400: "#a79a8a"
         },
-        line: {
-          200: "oklch(88% 0.008 245)",
-          300: "oklch(82% 0.010 245)"
+        seal: {
+          50: "#f8e8df",
+          500: "#b4472f",
+          600: "#963824"
         },
-        calibrate: {
-          50: "oklch(94% 0.025 250)",
-          500: "oklch(55% 0.115 250)",
-          600: "oklch(48% 0.105 250)"
+        sage: {
+          500: "#6f7d59"
         },
         amber: {
-          500: "oklch(63% 0.115 75)"
-        },
-        green: {
-          500: "oklch(58% 0.105 150)"
+          500: "#b9822e"
         },
         red: {
-          500: "oklch(55% 0.125 28)"
+          500: "#a6382e"
         }
       },
       boxShadow: {
-        ring: "inset 0 0 0 1px oklch(88% 0.008 245)",
-        editor: "inset 0 0 0 1px oklch(86% 0.009 245), 0 1px 2px rgba(20,31,46,0.04)",
-        action: "0 1px 2px rgba(20,31,46,0.10), 0 8px 24px rgba(38,91,168,0.14)",
-        float: "0 18px 48px rgba(20,31,46,0.16), inset 0 0 0 1px rgba(20,31,46,0.08)"
+        hairline: "inset 0 0 0 1px #ded2bf",
+        sheet: "0 1px 2px rgba(32, 27, 23, 0.04), inset 0 0 0 1px #e7dccd",
+        float: "0 18px 44px rgba(32, 27, 23, 0.14), inset 0 0 0 1px rgba(32, 27, 23, 0.08)",
+        action: "0 1px 2px rgba(32, 27, 23, 0.12), 0 10px 24px rgba(180, 71, 47, 0.18)"
       },
       borderRadius: {
-        tag: "6px",
-        button: "8px",
-        card: "12px",
-        drawer: "16px"
+        tag: "4px",
+        button: "6px",
+        card: "10px",
+        drawer: "14px"
       },
       transitionTimingFunction: {
         out: "cubic-bezier(0.16, 1, 0.3, 1)"
