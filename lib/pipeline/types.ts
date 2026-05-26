@@ -1,4 +1,4 @@
-export type Platform = "xiaohongshu" | "zhihu" | "x";
+export type Platform = "xiaohongshu" | "douyin" | "bilibili" | "zhihu" | "x";
 
 export type PipelineStatus =
   | "uploaded"

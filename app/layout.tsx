@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "像我写",
-  description: "中文知识创作者的个人表达资产库，让 AI 写得更像你。"
+  title: "流转 Flowcast",
+  description: "让创作者把一份内容，流转成多个平台都能发布的版本。"
 };
 
 export default function RootLayout({

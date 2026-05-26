@@ -2,15 +2,21 @@ import type { Platform, VoiceProfile } from "@/lib/pipeline/types";
 
 export const platformNames: Record<Platform, string> = {
   xiaohongshu: "小红书",
+  douyin: "抖音",
+  bilibili: "B站",
   zhihu: "知乎",
-  x: "X"
+  x: "X",
 };
 
 export const defaultPlatformRules: Record<Platform, string> = {
   xiaohongshu: "短段落，强场景，标题直接点出痛点，转化要轻，不使用夸张承诺。",
+  douyin: "口播节奏强，开头抓人，适合30-60秒短视频脚本，口语化，有互动感。",
+  bilibili: "结构完整，信息密度高，适合长视频简介和动态文案，允许适度玩梗。",
   zhihu: "结论先行，结构完整，强调方法论和可信判断，弱化营销感。",
-  x: "短句为主，观点密度高，开头抓人，适合连续观点输出。"
+  x: "短句为主，观点密度高，开头抓人，口语化，适合连续观点输出。",
 };
+
+export const allPlatforms: Platform[] = ["xiaohongshu", "douyin", "bilibili", "zhihu", "x"];
 
 export function buildTranscriptAnalysisPrompt(transcript: string): string {
   return [
@@ -18,7 +24,7 @@ export function buildTranscriptAnalysisPrompt(transcript: string): string {
     "请把下面的视频转写文本分析成严格 JSON，不要输出 Markdown。",
     "JSON 字段必须包含：topic, summary, core_points, cases, quotes, content_angles, risk_notes。",
     "core_points 每一项必须包含 point, evidence, usable_for_platforms。",
-    "usable_for_platforms 只能从 xiaohongshu, zhihu, x 中选择。",
+    `usable_for_platforms 只能从以下平台中选择：${allPlatforms.join(", ")}。`,
     "",
     "转写文本：",
     transcript

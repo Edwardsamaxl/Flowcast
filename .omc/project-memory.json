@@ -131,15 +131,33 @@
       "type": "file"
     },
     {
+      "path": "app\\library\\page.tsx",
+      "accessCount": 8,
+      "lastAccessed": 1779791808788,
+      "type": "file"
+    },
+    {
+      "path": "lib\\data.ts",
+      "accessCount": 8,
+      "lastAccessed": 1779791941670,
+      "type": "file"
+    },
+    {
+      "path": "app\\create\\page.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1779791882774,
+      "type": "file"
+    },
+    {
       "path": "app\\calibrate\\page.tsx",
       "accessCount": 6,
       "lastAccessed": 1779706346109,
       "type": "file"
     },
     {
-      "path": "app\\library\\page.tsx",
+      "path": "app\\api\\tasks\\route.ts",
       "accessCount": 6,
-      "lastAccessed": 1779789657000,
+      "lastAccessed": 1779791005410,
       "type": "file"
     },
     {
@@ -149,9 +167,27 @@
       "type": "file"
     },
     {
-      "path": "lib\\data.ts",
+      "path": "components\\app-shell.tsx",
       "accessCount": 4,
-      "lastAccessed": 1779789648252,
+      "lastAccessed": 1779790766414,
+      "type": "file"
+    },
+    {
+      "path": "app\\layout.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1779790776867,
+      "type": "file"
+    },
+    {
+      "path": "app\\api\\assets\\route.ts",
+      "accessCount": 4,
+      "lastAccessed": 1779790823806,
+      "type": "file"
+    },
+    {
+      "path": "components\\voice-profile.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1779791027350,
       "type": "file"
     },
     {
@@ -161,33 +197,39 @@
       "type": "file"
     },
     {
-      "path": "components\\voice-profile.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1779789648341,
-      "type": "file"
-    },
-    {
-      "path": "app\\create\\page.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1779789656967,
-      "type": "file"
-    },
-    {
-      "path": "app\\layout.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1779789657300,
-      "type": "file"
-    },
-    {
       "path": "components\\ui.tsx",
       "accessCount": 3,
       "lastAccessed": 1779789664909,
       "type": "file"
     },
     {
-      "path": "components\\app-shell.tsx",
+      "path": "lib\\db\\index.ts",
       "accessCount": 3,
-      "lastAccessed": 1779789664996,
+      "lastAccessed": 1779790396661,
+      "type": "file"
+    },
+    {
+      "path": "app\\api\\creators\\route.ts",
+      "accessCount": 3,
+      "lastAccessed": 1779790856349,
+      "type": "file"
+    },
+    {
+      "path": "lib\\pipeline\\types.ts",
+      "accessCount": 3,
+      "lastAccessed": 1779791677531,
+      "type": "file"
+    },
+    {
+      "path": "lib\\pipeline\\prompts.ts",
+      "accessCount": 3,
+      "lastAccessed": 1779791695215,
+      "type": "file"
+    },
+    {
+      "path": "app\\history\\page.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1779791902436,
       "type": "file"
     },
     {
@@ -239,6 +281,30 @@
       "type": "file"
     },
     {
+      "path": "lib\\utils.ts",
+      "accessCount": 2,
+      "lastAccessed": 1779789741744,
+      "type": "file"
+    },
+    {
+      "path": "lib\\db\\migrate.ts",
+      "accessCount": 2,
+      "lastAccessed": 1779790413101,
+      "type": "file"
+    },
+    {
+      "path": "app\\api\\creators\\[id]\\route.ts",
+      "accessCount": 2,
+      "lastAccessed": 1779790873750,
+      "type": "file"
+    },
+    {
+      "path": "app\\api\\assets\\[id]\\route.ts",
+      "accessCount": 2,
+      "lastAccessed": 1779790956349,
+      "type": "file"
+    },
+    {
       "path": "tsconfig.json",
       "accessCount": 1,
       "lastAccessed": 1779704564342,
@@ -254,12 +320,6 @@
       "path": "postcss.config.mjs",
       "accessCount": 1,
       "lastAccessed": 1779704564585,
-      "type": "file"
-    },
-    {
-      "path": "lib\\utils.ts",
-      "accessCount": 1,
-      "lastAccessed": 1779704574128,
       "type": "file"
     },
     {
@@ -323,27 +383,9 @@
       "type": "directory"
     },
     {
-      "path": "lib\\pipeline\\types.ts",
-      "accessCount": 1,
-      "lastAccessed": 1779789648123,
-      "type": "file"
-    },
-    {
       "path": "lib\\pipeline\\llm.ts",
       "accessCount": 1,
       "lastAccessed": 1779789648174,
-      "type": "file"
-    },
-    {
-      "path": "lib\\pipeline\\prompts.ts",
-      "accessCount": 1,
-      "lastAccessed": 1779789648487,
-      "type": "file"
-    },
-    {
-      "path": "app\\history\\page.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1779789657114,
       "type": "file"
     },
     {
@@ -356,6 +398,24 @@
       "path": "lib\\server\\env.ts",
       "accessCount": 1,
       "lastAccessed": 1779789657258,
+      "type": "file"
+    },
+    {
+      "path": ".env.example",
+      "accessCount": 1,
+      "lastAccessed": 1779789741702,
+      "type": "file"
+    },
+    {
+      "path": "lib\\db\\schema.ts",
+      "accessCount": 1,
+      "lastAccessed": 1779790093786,
+      "type": "file"
+    },
+    {
+      "path": "lib\\api-utils.ts",
+      "accessCount": 1,
+      "lastAccessed": 1779790131791,
       "type": "file"
     }
   ],

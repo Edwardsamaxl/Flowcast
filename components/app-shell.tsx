@@ -32,7 +32,7 @@ export function AppShell({
           </span>
           <span>
             <span className="block font-editorial text-xl font-semibold leading-tight">流转</span>
-            <span className="mt-0.5 block text-xs text-ink-600">表达资产档案室</span>
+            <span className="mt-0.5 block text-xs text-ink-600">内容流转工作台</span>
           </span>
         </Link>
 
