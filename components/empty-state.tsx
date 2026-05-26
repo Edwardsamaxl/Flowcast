@@ -26,7 +26,7 @@ export function EmptyState({
       {actionLabel && actionHref ? (
         <Link
           href={actionHref}
-          className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-button bg-calibrate-500 px-5 text-sm font-medium text-white shadow-action transition-[background-color,transform] duration-150 ease-out active:scale-[0.96] [@media(hover:hover)]:hover:bg-calibrate-600"
+          className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-button bg-seal-500 px-5 text-sm font-medium text-paper-0 shadow-action transition-[background-color,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] [@media(hover:hover)]:hover:bg-seal-600"
         >
           {actionLabel}
         </Link>

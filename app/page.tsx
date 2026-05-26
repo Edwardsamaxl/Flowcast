@@ -1,112 +1,103 @@
 import Link from "next/link";
-import { ArrowRight, BookOpenText, LibraryBig, PenLine } from "lucide-react";
+import { ArrowRight, LibraryBig, PenLine } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { draftList, generatedDraft, stats, transcripts } from "@/lib/data";
+import { flowSteps, generatedDraft, platformRules } from "@/lib/data";
 
 export default function HomePage() {
   return (
     <AppShell
       eyebrow="首页"
-      title="让 AI 写得像你。"
-      description="建立你的个人声纹资产库，让 AI 学会你的观点、语气和表达方式。无论是长视频还是直播内容，都能转化成像本人写的平台文字内容。"
-      actionLabel="创建声纹资产库"
+      title="让视频内容自然流转。"
+      description="建立人物声纹资产库，让 AI 学会你的观点、语气和表达方式。无论是长视频还是直播内容，都能转化成像本人写的多平台文字内容。"
+      actionLabel="上传视频"
     >
-      <div className="grid gap-7 xl:grid-cols-[1.05fr_0.95fr]">
-        <section className="space-y-7">
-          <div className="rounded-card border border-paper-200 bg-paper-0 p-6 shadow-sheet sm:p-8">
-            <div className="flex flex-wrap items-end justify-between gap-5">
-              <div>
-                <p className="text-sm font-medium text-seal-500">个人声纹资产库</p>
-                <h2 className="mt-3 max-w-3xl font-editorial text-[34px] font-semibold leading-[1.12] tracking-[-0.01em] text-ink-950 sm:text-[44px]">
-                  把你的观点、语气和禁用表达，整理成 AI 可调用的写作档案。
-                </h2>
-                <p className="mt-4 max-w-2xl text-[15px] leading-7 text-ink-600">
-                  先沉淀个人表达资产，再把长视频拆成小红书、知乎和 X 的可编辑草稿。每一次改稿反馈，都会写回下一次生成的约束。
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Link href="/library" className="inline-flex min-h-11 items-center gap-2 rounded-button bg-seal-500 px-5 text-sm font-medium text-paper-0 shadow-action transition-[background-color,transform] duration-200 ease-out active:translate-y-px [@media(hover:hover)]:hover:bg-seal-600">
-                  创建我的声纹资产库
+      <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+        <section className="rounded-card border border-paper-200 bg-paper-0 p-2 shadow-sheet">
+          <div className="rounded-[8px] bg-paper-0 p-7 sm:p-9">
+            <p className="inline-flex rounded-full bg-seal-50 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-seal-600">
+              Flowcast
+            </p>
+            <h2 className="mt-6 max-w-3xl font-editorial text-[48px] font-semibold leading-[1.08] text-ink-950 sm:text-[64px]">
+              把一条视频，变成一组可复用的表达资产。
+            </h2>
+            <p className="mt-5 max-w-2xl text-[16px] leading-8 text-ink-600">
+              先解析视频，再由你确认哪些观点、语气、结构可以写入人物画像。拆解内容默认只影响当前稿件，避免污染人设库。
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/library" className="group inline-flex min-h-12 items-center gap-3 rounded-full bg-seal-500 py-2 pl-5 pr-2 text-sm font-medium text-paper-0 shadow-action transition-[background-color,transform] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] [@media(hover:hover)]:hover:bg-seal-600">
+                创建声纹资产库
+                <span className="grid size-8 place-items-center rounded-full bg-paper-0/15 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-px">
                   <LibraryBig className="size-4" aria-hidden="true" />
-                </Link>
-                <Link href="/create" className="inline-flex min-h-11 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-5 text-sm font-medium text-ink-800 transition-[background-color,transform] duration-200 ease-out active:translate-y-px [@media(hover:hover)]:hover:bg-paper-50">
-                  试写一篇内容
-                  <PenLine className="size-4" aria-hidden="true" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {stats.map((stat) => (
-                <div key={stat.label} className="rounded-card border border-paper-200 bg-paper-50 p-4">
-                  <p className="text-xs text-ink-600">{stat.label}</p>
-                  <p className="mt-2 font-editorial text-4xl font-semibold tracking-[-0.01em] tabular">{stat.value}</p>
-                  <p className="mt-1 text-xs text-ink-400">{stat.helper}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-card border border-paper-200 bg-paper-0 p-6 shadow-sheet">
-            <div className="flex items-center justify-between">
-              <h2 className="font-editorial text-[24px] font-semibold tracking-[-0.01em]">最近转录</h2>
-              <Link href="/library" className="inline-flex items-center gap-1 text-xs font-medium text-seal-500">
-                查看资产库
-                <ArrowRight className="size-3" aria-hidden="true" />
+                </span>
               </Link>
-            </div>
-            <div className="mt-4 grid gap-3">
-              {transcripts.slice(0, 3).map((item, index) => (
-                <Link key={item.id} href={`/library/videos/${item.id}`} className="flex items-start gap-3 rounded-button border border-paper-200 bg-paper-50 p-4 transition-[background-color,transform] duration-200 ease-out active:translate-y-px [@media(hover:hover)]:hover:bg-paper-0">
-                  <span className="mt-0.5 font-mono text-xs tabular text-ink-400">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-ink-950">{item.title}</span>
-                    <span className="mt-1 block text-xs text-ink-400">{item.source} / {item.duration} / {item.status}</span>
-                  </span>
-                </Link>
-              ))}
+              <Link href="/create" className="group inline-flex min-h-12 items-center gap-3 rounded-full border border-paper-200 bg-paper-0 py-2 pl-5 pr-2 text-sm font-medium text-ink-800 transition-[background-color,transform] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] [@media(hover:hover)]:hover:bg-paper-50">
+                拆解一条内容
+                <span className="grid size-8 place-items-center rounded-full bg-paper-50 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-px">
+                  <PenLine className="size-4" aria-hidden="true" />
+                </span>
+              </Link>
             </div>
           </div>
         </section>
 
-        <aside className="space-y-7">
-          <section className="rounded-card border border-paper-200 bg-paper-0 p-6 shadow-sheet">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-ink-600">最近草稿</p>
-              <Link href="/drafts" className="inline-flex items-center gap-1 text-xs font-medium text-seal-500">
-                全部
-                <ArrowRight className="size-3" aria-hidden="true" />
-              </Link>
+        <section className="rounded-card border border-paper-200 bg-paper-50 p-2 shadow-sheet">
+          <div className="rounded-[8px] bg-paper-0 p-5">
+            <div className="grid gap-3">
+              {flowSteps.map((step, index) => {
+                const Icon = step.icon;
+                return (
+                  <div key={step.title} className="flex items-center gap-4 rounded-card border border-paper-200 bg-paper-50 p-4">
+                    <span className="font-mono text-xs tabular text-ink-400">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="grid size-10 place-items-center rounded-button bg-paper-0 text-seal-500 shadow-hairline">
+                      <Icon className="size-4" aria-hidden="true" />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-medium text-ink-950">{step.title}</span>
+                      <span className="mt-1 block text-xs text-ink-600">{step.detail}</span>
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-            <h2 className="mt-3 font-editorial text-[26px] font-semibold leading-[1.25] tracking-[-0.01em]">{generatedDraft.title}</h2>
-            <p className="mt-4 whitespace-pre-line border-l-2 border-seal-500 pl-4 text-sm leading-7 text-ink-800">{generatedDraft.body.split("\n\n").slice(0, 2).join("\n\n")}</p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <span className="rounded-tag bg-seal-50 px-2.5 py-1 text-xs font-medium text-seal-600">{generatedDraft.platform}</span>
-              <span className="rounded-tag bg-paper-50 px-2.5 py-1 text-xs text-ink-600">已校准</span>
-            </div>
-            <Link href={`/drafts/${draftList[0].id}`} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-4 text-sm font-medium text-ink-800 transition-[background-color,transform] duration-200 ease-out active:translate-y-px [@media(hover:hover)]:hover:bg-paper-50">
-              继续编辑
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
-          </section>
+          </div>
+        </section>
+      </div>
 
-          <section className="rounded-card border border-paper-200 bg-paper-50 p-6">
-            <div className="flex items-center gap-2">
-              <BookOpenText className="size-4 text-seal-500" aria-hidden="true" />
-              <p className="text-sm font-medium text-ink-950">固定示例对比</p>
+      <div className="mt-8 grid gap-8 xl:grid-cols-[1fr_1fr]">
+        <section className="rounded-card border border-paper-200 bg-paper-0 p-6 shadow-sheet">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium text-seal-500">流转示例</p>
+              <h2 className="mt-2 font-editorial text-[28px] font-semibold">同一段视频，三种平台写法</h2>
             </div>
-            <div className="mt-4 grid gap-3">
-              <div className="rounded-button border border-paper-200 bg-paper-0 p-4">
-                <p className="text-xs font-medium text-ink-400">通用 AI 味</p>
-                <p className="mt-2 text-sm leading-6 text-ink-600">今天给大家分享考研执行力干货，建议狠狠收藏，帮助你快速逆袭上岸。</p>
-              </div>
-              <div className="rounded-button border border-seal-500/30 bg-paper-0 p-4">
-                <p className="text-xs font-medium text-seal-500">像我写版本</p>
-                <p className="mt-2 text-sm leading-6 text-ink-800">计划能不能落地，不看你最有状态的那一天，看你最累的时候还能不能完成最关键的一件事。</p>
-              </div>
+            <ArrowRight className="size-4 text-ink-400" aria-hidden="true" />
+          </div>
+          <div className="mt-5 grid gap-3">
+            {Object.entries(platformRules).map(([key, rule]) => (
+              <article key={key} className="rounded-card border border-paper-200 bg-paper-50 p-4">
+                <div className="flex items-center gap-2">
+                  <rule.icon className="size-4 text-seal-500" aria-hidden="true" />
+                  <h3 className="text-sm font-medium text-ink-950">{rule.name}</h3>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-ink-600">{rule.rule}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-card border border-paper-200 bg-paper-0 p-6 shadow-sheet">
+          <p className="text-xs font-medium text-seal-500">像本人写的对比</p>
+          <div className="mt-4 grid gap-3">
+            <div className="rounded-card border border-paper-200 bg-paper-50 p-4">
+              <p className="text-xs font-medium text-ink-400">普通 AI 文案</p>
+              <p className="mt-2 text-sm leading-6 text-ink-600">今天给大家分享考研执行力干货，建议狠狠收藏，帮助你快速逆袭上岸。</p>
             </div>
-          </section>
-        </aside>
+            <div className="rounded-card border border-seal-500/30 bg-paper-0 p-4">
+              <p className="text-xs font-medium text-seal-500">调用人物画像后</p>
+              <p className="mt-2 text-sm leading-6 text-ink-800">{generatedDraft.body.split("\n\n")[2]}</p>
+            </div>
+          </div>
+        </section>
       </div>
     </AppShell>
   );

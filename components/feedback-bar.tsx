@@ -21,11 +21,11 @@ export function FeedbackBar() {
   };
 
   return (
-    <section className="sticky bottom-20 mt-6 rounded-card bg-surface-0 p-4 shadow-editor lg:bottom-0">
+    <section className="sticky bottom-20 mt-6 rounded-card border border-paper-200 bg-paper-0 p-4 shadow-sheet lg:bottom-0">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium text-ink-950">这次改稿要记住什么</p>
+        <p className="text-sm font-medium text-ink-950">这次改稿要记住什么？</p>
         {activeTags.size > 0 ? (
-          <p className="text-xs text-calibrate-600">已写入下次生成的负向约束</p>
+          <p className="text-xs text-seal-600">可选择写回人物画像</p>
         ) : null}
       </div>
       <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
