@@ -43,15 +43,14 @@
     .accent-block{background:var(--accent);color:var(--accent-on);padding:1.1vh 1vw;font-weight:600}
     .ink-block{background:var(--ink);color:var(--paper);padding:1vh 1vw}
 
-    .cover{display:grid;grid-template-rows:1fr auto;height:100%;padding-top:10vh}
-    .cover-main{align-self:center}
+    .cover{display:grid;grid-template-columns:47vw 1fr;grid-template-rows:1fr auto;column-gap:4vw;height:100%;padding-top:10vh}
+    .cover-main{align-self:center;grid-column:1}
     .cover-slogan{margin-top:3.2vh;font-size:2.55vw;line-height:1.18;font-weight:300}
-    .cover-def{margin-top:4.2vh;width:44vw;padding-top:2vh;border-top:1px solid currentColor;font-size:1.22vw;line-height:1.45;color:var(--muted)}
-    .cover-mark{position:absolute;right:5vw;top:13vh;width:31vw;height:31vw;border:1px solid var(--line);display:grid;place-items:center;color:var(--accent)}
-    .cover-mark::before,.cover-mark::after{content:"";position:absolute;background:var(--accent)}
-    .cover-mark::before{width:78%;height:1px;transform:rotate(35deg)}
-    .cover-mark::after{width:1px;height:78%;transform:rotate(35deg)}
-    .cover-mark span{position:absolute;font-family:var(--mono);font-size:.78vw;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:var(--paper);padding:.6vh .8vw}
+    .cover-def{margin-top:4.2vh;width:42vw;padding-top:2vh;border-top:1px solid currentColor;font-size:1.22vw;line-height:1.45;color:var(--muted)}
+    .cover-foot{grid-column:1 / -1;align-self:end;font-size:.78vw;color:var(--muted)}
+    .cover-product{grid-column:2;grid-row:1;align-self:center;border:1px solid var(--accent);background:white;padding:.55vw;position:relative;width:100%}
+    .cover-product::before{content:"PRODUCT PREVIEW";position:absolute;left:.55vw;top:-2.3vh;font-family:var(--mono);font-size:.64vw;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600}
+    .cover-product img{width:100%;height:auto;object-fit:contain}
 
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:3vw;height:100%;padding-top:10vh;align-items:start}
     .credential-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw;margin-top:4vh}
@@ -67,45 +66,65 @@
     .phone img{width:100%;height:100%;object-fit:cover;object-position:center top}
     .phone figcaption{position:absolute;left:0;top:0;background:var(--accent);color:var(--accent-on);font-weight:600;font-size:.84vw;padding:.62vh .7vw}
 
-    .research{display:grid;grid-template-columns:19vw 1fr 23vw;gap:2vw;height:100%;padding-top:13vh}
-    .metrics{display:grid;gap:2.3vh;align-self:start}
-    .metric{border-top:2px solid var(--ink);padding-top:1.2vh}
-    .metric .num{font-size:7.6vw;line-height:.78;font-weight:200;letter-spacing:-.05em;color:var(--accent)}
-    .metric .label{margin-top:1.1vh;font-size:1.16vw;line-height:1.28;font-weight:600}
+    .research{height:100%;padding-top:7.1vh;display:grid;grid-template-rows:auto 1fr;gap:1.25vh}
+    .research-top{display:grid;grid-template-columns:44vw 1fr;gap:2.6vw;align-items:end}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw;align-self:end}
+    .metric{border-top:2px solid var(--ink);padding-top:1vh}
+    .metric .num{font-size:5.8vw;line-height:.78;font-weight:200;letter-spacing:-.05em;color:var(--accent)}
+    .metric .label{margin-top:.9vh;font-size:1.02vw;line-height:1.28;font-weight:600}
     .wall-label{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1vh;font-weight:600}
     .wall-label span:last-child{font-family:var(--mono);font-size:.62vw;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
-    .sample-wall{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:.65vw;height:58vh}
+    .evidence-matrix{display:grid;grid-template-columns:18vw 41.5vw 1fr;gap:1.25vw;min-height:0;align-items:start}
+    .metric-stack{display:grid;gap:1.05vh;padding-top:.8vh}
+    .metric-stack .metric{border-top:2px solid var(--ink);padding-top:1.15vh}
+    .metric-stack .metric .num{font-size:6.6vw;line-height:.76}
+    .sample-wall{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:auto;gap:.55vw;align-content:start}
     .sample,.chat{background:white;border:1px solid var(--line);overflow:hidden}
-    .sample img,.chat img{width:100%;height:100%;object-fit:cover;object-position:center top}
-    .chat-stack{display:grid;grid-template-rows:repeat(4,1fr);gap:.65vw;height:58vh}
+    .sample{padding:.18vw;aspect-ratio:2.5}
+    .sample img,.chat img{width:100%;height:100%;object-position:center top}
+    .sample img{object-fit:contain;object-position:center center;background:white}
+    .chat-grid{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:8.05vh;gap:.42vw;height:auto}
+    .chat{padding:.22vw}
+    .chat img{object-fit:contain;background:white}
+    .chat.is-wide{grid-column:1 / -1;grid-row:auto;height:5.4vh}
 
-    .pain{display:grid;grid-template-columns:39vw 1fr;gap:3.2vw;height:100%;padding-top:11vh}
-    .pain-list{display:grid;gap:1.2vh;margin-top:4vh}
+    .pain{display:grid;grid-template-columns:40vw 1fr;gap:3vw;height:100%;padding-top:10.4vh}
+    .pain-left{display:grid;grid-template-rows:auto auto 1fr;min-height:0}
+    .pain-list{display:grid;gap:1.1vh;margin-top:3.6vh}
     .pain-item{display:grid;grid-template-columns:2.1vw 1fr;gap:1vw;border-top:1px solid var(--line);padding:1.4vh 0;font-size:1.18vw;line-height:1.48;font-weight:400}
     .xmark{width:1.42vw;height:1.42vw;background:var(--accent);color:var(--accent-on);display:grid;place-items:center;font-family:var(--mono);font-size:.82vw;font-weight:700;margin-top:.35vh}
-    .competitor{border:1px solid var(--line);background:white;padding:1.4vh 1vw}
-    .competitor-shot{height:31vh;border:1px solid var(--line);display:grid;place-items:center;background:var(--soft);overflow:hidden}
-    .competitor-shot img{width:100%;height:100%;object-fit:contain}
-    .critique-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75vw;margin-top:1.3vh}
-    .critique{border:1px solid var(--accent);color:var(--accent);padding:1vh .7vw;text-align:center;font-size:1vw;font-weight:600}
+    .pain-note{align-self:end;width:34vw;border-top:2px solid var(--ink);padding-top:1.6vh;margin-bottom:7vh;color:#343431}
+    .proof-stack{display:grid;grid-template-rows:auto auto 1fr;gap:1.65vh;min-height:0}
+    .competitor,.product-proof{border:1px solid var(--line);background:white;padding:.9vh .8vw}
+    .competitor{align-self:start}
+    .competitor-shot{height:14.5vh;border:1px solid var(--line);display:grid;place-items:center;background:var(--soft);overflow:hidden}
+    .competitor-shot img,.product-shot img{width:100%;height:100%;object-fit:contain}
+    .critique-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.45vw;margin-top:.75vh}
+    .critique{border:1px solid var(--accent);color:var(--accent);padding:.5vh .45vw;text-align:center;font-size:.76vw;font-weight:600}
+    .product-shot{height:37vh;border:1px solid var(--line);display:grid;place-items:center;background:#f7f8fb;overflow:hidden}
 
-    .opportunity{display:grid;grid-template-columns:40vw 1fr;gap:3.4vw;height:100%;padding-top:20vh}
-    .radar{position:relative;height:48vh;border-right:1px solid var(--line)}
-    .radar svg{position:absolute;left:50%;top:50%;width:24vw;height:24vw;transform:translate(-50%,-50%)}
-    .radar-label{position:absolute;width:10vw;font-size:.98vw;line-height:1.3;font-weight:600}
-    .radar-label small{display:block;margin-top:.35vh;font-family:var(--mono);font-size:.58vw;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
-    .r1{left:15vw;top:0;text-align:center}.r2{right:.4vw;top:16.6vh}.r3{right:3vw;bottom:0}.r4{left:2vw;bottom:0;text-align:right}.r5{left:0;top:16.6vh;text-align:right}
-    .center-verdict{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:9vw;height:9vw;background:var(--accent);color:var(--accent-on);display:grid;place-items:center;text-align:center;font-size:1.18vw;line-height:1.18;font-weight:600}
-    .reason-list{display:grid;gap:.8vh}
-    .reason{display:grid;grid-template-columns:5.5vw 1fr;gap:1vw;border-top:1px solid var(--ink);padding:1.25vh 0}
-    .reason strong{font-size:1.1vw;color:var(--accent)}
-    .reason p{font-size:1vw;line-height:1.46;color:#343431}
+    .opportunity{display:grid;grid-template-columns:45vw 1fr;gap:2.8vw;height:100%;padding-top:28vh;align-items:start}
+    .radar{position:relative;height:59.5vh;border-right:1px solid var(--line);padding-right:2vw;display:grid;grid-template-rows:1fr auto;gap:2.6vh}
+    .radar-visual{min-height:0;overflow:hidden;background:white;display:grid;place-items:center}
+    .dimension-img{width:100%;height:100%;object-fit:cover;object-position:center 47%;transform:scale(1.14);display:block}
+    .radar-cap{display:flex;justify-content:space-between;align-items:flex-end;border-top:2px solid var(--ink);padding-top:1vh;font-family:var(--mono);font-size:.68vw;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+    .reason-list{display:grid;border-top:2px solid var(--ink);width:100%;min-width:0}
+    .reason{display:grid;grid-template-columns:10.8vw minmax(0,1fr);gap:1.4vw;align-items:center;border-bottom:1px solid var(--line);min-height:8.9vh;padding:0 1.35vw}
+    .reason .idx{display:none}
+    .reason strong{font-size:1.5vw;line-height:1.08;color:var(--accent);font-weight:700;letter-spacing:-.01em}
+    .reason p{font-size:1.04vw;line-height:1.45;color:#252522;max-width:none}
+    .reason:nth-child(odd){background:var(--accent);border-bottom-color:rgba(255,255,255,.28)}
+    .reason:nth-child(odd) .idx,.reason:nth-child(odd) strong,.reason:nth-child(odd) p{color:var(--accent-on)}
+    .reason:nth-child(odd) p{opacity:.92}
 
-    .closing{display:grid;grid-template-columns:1fr 42vw;gap:4vw;height:100%;padding-top:13vh;align-items:center}
-    .qr-row{display:grid;grid-template-columns:1fr 1fr;gap:2vw}
-    .qr-card{border:1px solid var(--line);background:white;padding:1.3vh 1vw 1.5vh}
-    .qr-card img{width:100%;height:43vh;object-fit:contain;background:white}
-    .qr-card figcaption{border-top:1px solid var(--line);margin-top:1.2vh;padding-top:1vh;text-align:center;font-size:1.05vw;font-weight:600}
+    .closing{display:grid;grid-template-columns:.82fr 1fr;gap:3.4vw;height:100%;padding-top:13vh;align-items:center}
+    .closing-copy{align-self:center}
+    .closing-copy .body{margin-top:3vh;max-width:34ch}
+    .qr-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5vw}
+    .qr-card{border:1px solid var(--line);background:white;padding:1.6vh 1.2vw;display:grid;gap:1.2vh}
+    .qr-card img{width:100%;height:39vh;object-fit:contain;background:white}
+    .qr-card figcaption{border-top:1px solid var(--line);margin-top:.2vh;padding-top:1.1vh;font-size:1.45vw;line-height:1.2;font-weight:400}
+    .qr-card .cap{font-family:var(--mono);font-size:.72vw;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
     .flow-mini{display:flex;align-items:center;gap:.8vw;margin-top:5vh;flex-wrap:wrap}
     .mini{border:1px solid currentColor;width:4.1vw;height:4.1vw;display:grid;place-items:center;font-size:.9vw;font-weight:600}
     .arrow{font-family:var(--mono);color:var(--accent)}
@@ -118,7 +137,9 @@
       .slide{padding-left:4vw;padding-right:4vw}
       .h-xl{font-size:5vw}
       .lead{font-size:1.15vw}
-      .research{grid-template-columns:17vw 1fr 21vw}
+      .research-top{grid-template-columns:38vw 1fr}
+      .evidence-matrix{grid-template-columns:17vw 41vw 1fr}
+      .sample{aspect-ratio:2.45}
       .social-wall{height:62vh}
     }
   </style>
@@ -134,9 +155,11 @@
           <p class="cover-slogan">让创作者的内容流转起来</p>
           <p class="cover-def">面向创作者的多平台内容转写与资产沉淀工具</p>
         </div>
-        <div class="mono" style="font-size:.78vw;color:var(--muted)">Content Transfer / Platform Adaptation / Asset Memory</div>
+        <figure class="cover-product">
+          <img src="../html-images/产品图/Landing Page.png" alt="Flowcast Landing Page 产品截图">
+        </figure>
+        <div class="mono cover-foot">Content Transfer / Platform Adaptation / Asset Memory</div>
       </div>
-      <div class="cover-mark" aria-hidden="true"><span>flow system</span></div>
     </section>
 
     <section class="slide" data-title="热爱与擅长">
@@ -174,56 +197,65 @@
 
     <section class="slide" data-title="需求分析">
       <div class="chrome"><span>Demand Validation</span><span>03 / 06</span></div>
-      <div class="abs-title p3-title">
-        <div class="kicker">需求分析</div>
-        <h2 class="h-xl" style="font-size:min(4.5vw,8.2vh);margin-top:1.2vh">这是创作者的<br>“真需求”</h2>
-      </div>
       <div class="research">
-        <div class="metrics" style="margin-top:19vh">
-          <div class="metric"><div class="num">8</div><div class="label">位创作者调研</div></div>
-          <div class="metric"><div class="num">6</div><div class="label">位明确有需求</div></div>
-          <div class="metric"><div class="num">1</div><div class="label">位已有自建工作流</div></div>
-        </div>
-        <div style="margin-top:6.8vh">
-          <div class="wall-label"><span>粉丝数截图 / 样本质量</span><span>creator authority</span></div>
-          <div class="sample-wall">
-            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/nini.png" alt="nini 粉丝数截图"></div>
-            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/Russell.png" alt="Russell 粉丝数截图"></div>
-            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/Yuvi.png" alt="Yuvi 粉丝数截图"></div>
-            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/小水同学.png" alt="小水同学粉丝数截图"></div>
-            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/得否.png" alt="得否粉丝数截图"></div>
-            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/百年.png" alt="百年粉丝数截图"></div>
-            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/蜗牛.png" alt="蜗牛粉丝数截图"></div>
-            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/西楚.png" alt="西楚粉丝数截图"></div>
-            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/Linote.png" alt="Linote 粉丝数截图"></div>
+        <div class="research-top">
+          <div>
+            <div class="kicker">需求分析</div>
+            <h2 class="h-xl" style="font-size:min(4.4vw,7.8vh);margin-top:1.2vh">这是创作者的<br>“真需求”</h2>
           </div>
         </div>
-        <div style="margin-top:6.8vh">
-          <div class="wall-label"><span>微信交流 / 真实反馈</span><span>real chat</span></div>
-          <div class="chat-stack">
-            <div class="chat"><img src="../html-images/产品调研/微信交流截图/nini.png" alt="nini 微信交流截图"></div>
-            <div class="chat"><img src="../html-images/产品调研/微信交流截图/得否.png" alt="得否微信交流截图"></div>
-            <div class="chat"><img src="../html-images/产品调研/微信交流截图/小水同学.png" alt="小水同学微信交流截图"></div>
-            <div class="chat"><img src="../html-images/产品调研/微信交流截图/西楚.png" alt="西楚微信交流截图"></div>
+        <div class="evidence-matrix">
+          <div class="metric-stack" aria-label="调研结论">
+            <div class="metric"><div class="num">9</div><div class="label">位创作者调研</div></div>
+            <div class="metric"><div class="num">8</div><div class="label">位明确有需求</div></div>
+            <div class="metric"><div class="num">1</div><div class="label">位已有自建工作流</div></div>
+          </div>
+          <div>
+            <div class="wall-label"><span>粉丝数截图 / 样本质量</span><span>creator authority</span></div>
+            <div class="sample-wall">
+              <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/Russell.png" alt="Russell 粉丝数截图"></div>
+              <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/nini.png" alt="nini 粉丝数截图"></div>
+              <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/小水同学.png" alt="小水同学粉丝数截图"></div>
+              <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/Yuvi.png" alt="Yuvi 粉丝数截图"></div>
+              <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/得否.png" alt="得否粉丝数截图"></div>
+              <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/百年.png" alt="百年粉丝数截图"></div>
+              <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/蜗牛.png" alt="蜗牛粉丝数截图"></div>
+              <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/Linote.png" alt="Linote 粉丝数截图"></div>
+              <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/西楚.png" alt="西楚粉丝数截图"></div>
+            </div>
+          </div>
+          <div>
+            <div class="wall-label"><span>微信交流 / 真实反馈</span><span>9 short chats</span></div>
+            <div class="chat-grid">
+              <div class="chat"><img src="../html-images/产品调研/微信交流截图/Russell.png" alt="Russell 微信交流截图"></div>
+              <div class="chat"><img src="../html-images/产品调研/微信交流截图/nini.png" alt="nini 微信交流截图"></div>
+              <div class="chat is-wide"><img src="../html-images/产品调研/微信交流截图/Yuvi.png" alt="Yuvi 微信交流截图"></div>
+              <div class="chat"><img src="../html-images/产品调研/微信交流截图/蜗牛.png" alt="蜗牛微信交流截图"></div>
+              <div class="chat"><img src="../html-images/产品调研/微信交流截图/得否.png" alt="得否微信交流截图"></div>
+              <div class="chat"><img src="../html-images/产品调研/微信交流截图/Linote.png" alt="Linote 微信交流截图"></div>
+              <div class="chat"><img src="../html-images/产品调研/微信交流截图/小水同学.png" alt="小水同学微信交流截图"></div>
+              <div class="chat"><img src="../html-images/产品调研/微信交流截图/百年.png" alt="百年微信交流截图"></div>
+              <div class="chat"><img src="../html-images/产品调研/微信交流截图/西楚.png" alt="西楚微信交流截图"></div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="stamp" style="position:absolute;right:5vw;top:8.3vh">样本质量 × 真实对话 × 结论强度</div>
     </section>
 
     <section class="slide" data-title="麻烦与竞品">
       <div class="chrome"><span>Pain Point + Competitor</span><span>04 / 06</span></div>
       <div class="pain">
-        <div>
+        <div class="pain-left">
           <div class="kicker">创作者的麻烦 + 竞品分析</div>
-          <h2 class="h-xl" style="margin-top:1.4vh;font-size:min(4.6vw,8.5vh)">多平台分发是趋势，<br>但改写仍然很痛</h2>
+          <h2 class="h-xl" style="margin-top:1.4vh;font-size:min(4.7vw,8.4vh)">多平台分发是未来趋势</h2>
           <div class="pain-list">
             <div class="pain-item"><span class="xmark">×</span><span>一篇内容要适配 X、小红书、公众号、抖音等平台。</span></div>
             <div class="pain-item"><span class="xmark">×</span><span>不同平台语气、长度、结构、标题逻辑都不同。</span></div>
             <div class="pain-item"><span class="xmark">×</span><span>创作者通常没时间维护完整人设和平台风格。</span></div>
           </div>
+          <p class="lead pain-note">这不是“再做一个改写器”，而是把创作者长期重复的适配劳动，收进一个可复用的工作流。</p>
         </div>
-        <div>
+        <div class="proof-stack">
           <div class="wall-label"><span>竞品输出截图</span><span>failure evidence</span></div>
           <div class="competitor">
             <div class="competitor-shot"><img src="../html-images/竞品/竞品展示.png" alt="竞品展示截图"></div>
@@ -234,7 +266,12 @@
               <div class="critique">平台适配弱</div>
             </div>
           </div>
-          <p class="lead" style="margin-top:3vh;width:34vw">这不是“再做一个改写器”，而是把创作者长期重复的适配劳动，收进一个可复用的工作流。</p>
+          <div>
+            <div class="wall-label"><span>Flowcast 内容转写示例</span><span>product output</span></div>
+            <div class="product-proof">
+              <div class="product-shot"><img src="../html-images/产品图/内容转写示例.png" alt="Flowcast 内容转写示例截图"></div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -247,56 +284,39 @@
       </div>
       <div class="opportunity">
         <div class="radar" aria-label="五维机会判断图">
-          <svg viewBox="0 0 300 300" aria-hidden="true">
-            <polygon points="150,18 276,110 228,258 72,258 24,110" fill="none" stroke="#0a0a0a" stroke-width="1"></polygon>
-            <polygon points="150,64 232,124 201,219 99,219 68,124" fill="none" stroke="#d8d8d3" stroke-width="1"></polygon>
-            <polygon points="150,18 276,110 228,258 72,258 24,110" fill="rgba(0,47,167,.12)" stroke="#002FA7" stroke-width="3"></polygon>
-            <line x1="150" y1="150" x2="150" y2="18" stroke="#d8d8d3"></line>
-            <line x1="150" y1="150" x2="276" y2="110" stroke="#d8d8d3"></line>
-            <line x1="150" y1="150" x2="228" y2="258" stroke="#d8d8d3"></line>
-            <line x1="150" y1="150" x2="72" y2="258" stroke="#d8d8d3"></line>
-            <line x1="150" y1="150" x2="24" y2="110" stroke="#d8d8d3"></line>
-          </svg>
-          <div class="center-verdict">Flowcast<br>机会判断</div>
-          <div class="radar-label r1">高频<small>continuous need</small></div>
-          <div class="radar-label r2">明确用户<small>creator segment</small></div>
-          <div class="radar-label r3">更高效<small>less manual work</small></div>
-          <div class="radar-label r4">有付费能力<small>lighter than labor</small></div>
-          <div class="radar-label r5">可衡量<small>quality + data</small></div>
+          <div class="radar-visual">
+            <img class="dimension-img" src="../html-images/生成图/flowcast-opportunity-dimensions.png" alt="Flowcast 五维机会判断图">
+          </div>
+          <div class="radar-cap"><span>Flowcast</span><span>Opportunity Map</span></div>
         </div>
         <div class="reason-list">
-          <div class="reason"><strong>高频</strong><p>只要持续创作，就持续需要内容沉淀和转写。</p></div>
-          <div class="reason"><strong>明确用户</strong><p>有跨平台增长需求的创作者。</p></div>
-          <div class="reason"><strong>更高效</strong><p>替代手动改写、整理人设、重复适配。</p></div>
-          <div class="reason"><strong>有付费能力</strong><p>相比几千元人力，一个月一两百的 AI 工具更轻。</p></div>
-          <div class="reason"><strong>可衡量</strong><p>结果能被创作者主观判断，也能被平台数据反馈。</p></div>
+          <div class="reason hero-reason"><span class="idx">01</span><strong>高频</strong><p>只要持续创作，就持续需要内容沉淀和转写。</p></div>
+          <div class="reason"><span class="idx">02</span><strong>明确用户</strong><p>有跨平台增长需求的创作者。</p></div>
+          <div class="reason"><span class="idx">03</span><strong>更高效</strong><p>替代手动改写、整理人设、重复适配。</p></div>
+          <div class="reason"><span class="idx">04</span><strong>有付费能力</strong><p>相比几千元人力，一个月一两百的 AI 工具更轻。</p></div>
+          <div class="reason"><span class="idx">05</span><strong>可衡量</strong><p>结果能被创作者主观判断，也能被平台数据反馈。</p></div>
         </div>
       </div>
     </section>
 
-    <section class="slide dark" data-title="欢迎体验">
-      <div class="chrome"><span>Live Conversion</span><span>06 / 06</span></div>
+    <section class="slide" data-title="欢迎体验">
+      <div class="chrome"><span>Conversion</span><span>06 / 06</span></div>
       <div class="closing">
-        <div>
-          <div class="kicker" style="color:#85a2ff">感谢页 / 现场转化</div>
-          <h2 class="h-xl" style="margin-top:1.6vh;font-size:min(6vw,10.5vh)">欢迎体验<br>Flowcast</h2>
-          <div class="flow-mini" aria-label="内容流转流程">
-            <div class="mini">创作</div><span class="arrow">→</span>
-            <div class="mini">适配</div><span class="arrow">→</span>
-            <div class="mini">分发</div><span class="arrow">→</span>
-            <div class="mini">沉淀</div><span class="arrow">→</span>
-            <div class="mini">复用</div>
-          </div>
-          <p class="lead" style="margin-top:5vh;width:38vw">扫码预约演示，或加入产品体验群。和真实创作者一起，把高质量内容持续流转起来。</p>
+        <div class="closing-copy">
+          <div class="kicker">欢迎体验 Flowcast</div>
+          <h2 class="h-xl" style="margin-top:1.6vh;font-size:min(5.2vw,9.2vh)">让下一篇内容，<br>直接开始流转</h2>
+          <p class="body">欢迎大家扫码加入产品体验群或直接联系我，产品仍在早期，但需求已经被真实创作者验证</p>
         </div>
         <div class="qr-row">
           <figure class="qr-card">
             <img src="../html-images/反馈/本人二维码.jpg" alt="个人微信二维码">
             <figcaption>个人微信</figcaption>
+            <div class="cap">Founder contact</div>
           </figure>
           <figure class="qr-card">
             <img src="../html-images/反馈/产品体验群二维码.jpg" alt="产品体验群二维码">
             <figcaption>产品体验群</figcaption>
+            <div class="cap">Flowcast beta group</div>
           </figure>
         </div>
       </div>

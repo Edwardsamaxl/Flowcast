@@ -37,7 +37,45 @@ export async function POST(
       .set({ status: "analyzing", updatedAt: now() })
       .where(eq(sourceAssets.id, id));
 
-    const analysis = await analyzeTranscript(transcript.fullText);
+    // Parallelize content analysis and profile suggestion loading
+    const analysisPromise = analyzeTranscript(transcript.fullText);
+
+    let profilePromise: Promise<
+      | { additions: Array<{ field: string; value: string }>; modifications: Array<{ field: string; from: string; to: string }>; evidence_segments: string[] }
+      | null
+    > = Promise.resolve(null);
+
+    if (asset.creatorId) {
+      const [c] = await db.select().from(creators).where(eq(creators.id, asset.creatorId));
+      const [p] = await db
+        .select()
+        .from(creatorProfiles)
+        .where(eq(creatorProfiles.creatorId, asset.creatorId));
+      if (c && p) {
+        const currentProfile: CreatorProfile = {
+          persona_id: c.id,
+          name: c.name,
+          positioning: p.positioning,
+          domain: p.domain,
+          tone: parseJsonField<string[]>(p.tone, []),
+          beliefs: parseJsonField<string[]>(p.beliefs, []),
+          cases: parseJsonField<string[]>(p.cases, []),
+          common_patterns: parseJsonField<string[]>(p.commonPatterns, []),
+          avoid_phrases: parseJsonField<string[]>(p.avoidPhrases, []),
+          title_preference: p.titlePreference,
+          platform_rules: parseJsonField<Record<string, string>>(
+            p.platformRules,
+            {}
+          ) as Record<Platform, string>,
+        };
+        profilePromise = suggestCreatorProfileUpdates({
+          transcript: transcript.fullText,
+          currentProfile,
+        });
+      }
+    }
+
+    const [analysis, suggestions] = await Promise.all([analysisPromise, profilePromise]);
 
     const [existing] = await db.select().from(analyses).where(eq(analyses.assetId, id));
     if (existing) {
@@ -73,64 +111,31 @@ export async function POST(
       .set({ status: "analyzed", updatedAt: now() })
       .where(eq(sourceAssets.id, id));
 
-    // Generate creator profile suggestions if asset is linked to a creator
-    if (asset.creatorId) {
-      try {
-        const [c] = await db.select().from(creators).where(eq(creators.id, asset.creatorId));
-        const [p] = await db
-          .select()
-          .from(creatorProfiles)
-          .where(eq(creatorProfiles.creatorId, asset.creatorId));
-        if (c && p) {
-          const currentProfile: CreatorProfile = {
-            persona_id: c.id,
-            name: c.name,
-            positioning: p.positioning,
-            domain: p.domain,
-            tone: parseJsonField<string[]>(p.tone, []),
-            beliefs: parseJsonField<string[]>(p.beliefs, []),
-            cases: parseJsonField<string[]>(p.cases, []),
-            common_patterns: parseJsonField<string[]>(p.commonPatterns, []),
-            avoid_phrases: parseJsonField<string[]>(p.avoidPhrases, []),
-            title_preference: p.titlePreference,
-            platform_rules: parseJsonField<Record<string, string>>(
-              p.platformRules,
-              {}
-            ) as Record<Platform, string>,
-          };
-          const suggestions = await suggestCreatorProfileUpdates({
-            transcript: transcript.fullText,
-            currentProfile,
-          });
+    if (suggestions && asset.creatorId) {
+      const [existingSugg] = await db
+        .select()
+        .from(profileSuggestions)
+        .where(eq(profileSuggestions.assetId, id));
 
-          const [existingSugg] = await db
-            .select()
-            .from(profileSuggestions)
-            .where(eq(profileSuggestions.assetId, id));
-
-          if (existingSugg) {
-            await db
-              .update(profileSuggestions)
-              .set({
-                suggestions: JSON.stringify(suggestions),
-                status: "pending",
-                updatedAt: now(),
-              })
-              .where(eq(profileSuggestions.id, existingSugg.id));
-          } else {
-            await db.insert(profileSuggestions).values({
-              id: uid(),
-              assetId: id,
-              creatorId: asset.creatorId,
-              suggestions: JSON.stringify(suggestions),
-              status: "pending",
-              createdAt: now(),
-              updatedAt: now(),
-            });
-          }
-        }
-      } catch (suggErr) {
-        console.error("Profile suggestion failed:", suggErr);
+      if (existingSugg) {
+        await db
+          .update(profileSuggestions)
+          .set({
+            suggestions: JSON.stringify(suggestions),
+            status: "pending",
+            updatedAt: now(),
+          })
+          .where(eq(profileSuggestions.id, existingSugg.id));
+      } else {
+        await db.insert(profileSuggestions).values({
+          id: uid(),
+          assetId: id,
+          creatorId: asset.creatorId,
+          suggestions: JSON.stringify(suggestions),
+          status: "pending",
+          createdAt: now(),
+          updatedAt: now(),
+        });
       }
     }
 

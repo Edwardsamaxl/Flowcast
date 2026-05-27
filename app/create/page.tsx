@@ -128,18 +128,21 @@ export default function CreatePage() {
     if (profileSuggestion?.suggestions) {
       const sugg = profileSuggestion.suggestions;
       const additions: ProfileAddition[] = [];
-      const push = (field: string, items?: string[]) => {
-        if (!items) return;
-        items.forEach((v) => { if (v.trim()) additions.push({ field, value: v.trim() }); });
-      };
-      push("定位", sugg.positioning_suggestions);
-      push("语气", sugg.tone_suggestions);
-      push("高频观点", sugg.belief_suggestions);
-      push("常用案例", sugg.case_suggestions);
-      push("常用结构", sugg.common_pattern_suggestions);
-      push("禁用表达", sugg.avoid_phrase_suggestions);
+      const modifications: ProfileModification[] = [];
+
+      if (sugg.additions && Array.isArray(sugg.additions)) {
+        sugg.additions.forEach((a: { field?: string; value?: string }) => {
+          if (a.field?.trim() && a.value?.trim()) additions.push({ field: a.field.trim(), value: a.value.trim() });
+        });
+      }
+      if (sugg.modifications && Array.isArray(sugg.modifications)) {
+        sugg.modifications.forEach((m: { field?: string; from?: string; to?: string }) => {
+          if (m.field?.trim() && m.to?.trim()) modifications.push({ field: m.field.trim(), from: m.from?.trim() || "", to: m.to.trim() });
+        });
+      }
+
       setLocalAdditions(additions);
-      setLocalModifications([]);
+      setLocalModifications(modifications);
       return;
     }
 
