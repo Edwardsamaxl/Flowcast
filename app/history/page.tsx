@@ -83,9 +83,8 @@ export default function HistoryPage() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-card border border-paper-200 bg-paper-0 shadow-sheet">
-          <div className="hidden grid-cols-[1fr_0.7fr_0.5fr_0.5fr_44px] gap-4 border-b border-paper-200 bg-paper-100 px-5 py-3 text-xs font-medium text-ink-600 md:grid">
+          <div className="hidden grid-cols-[1fr_0.5fr_0.5fr_44px] gap-4 border-b border-paper-200 bg-paper-100 px-5 py-3 text-xs font-medium text-ink-600 md:grid">
             <span>视频名称</span>
-            <span>来源</span>
             <span>创作者画像</span>
             <span>更新时间</span>
             <span className="sr-only">打开</span>
@@ -94,15 +93,14 @@ export default function HistoryPage() {
             <Link
               key={asset.id}
               href={`/create?assetId=${asset.id}`}
-              className="grid gap-2 border-b border-paper-200 px-5 py-4 text-sm transition-[background-color,transform] duration-300 last:border-b-0 active:scale-[0.99] hover:bg-paper-50 md:grid-cols-[1fr_0.7fr_0.5fr_0.5fr_44px] md:items-center md:gap-4"
+              className="grid gap-2 border-b border-paper-200 px-5 py-4 text-sm transition-[background-color,transform] duration-300 last:border-b-0 active:scale-[0.99] hover:bg-paper-50 md:grid-cols-[1fr_0.5fr_0.5fr_44px] md:items-center md:gap-4"
             >
               <span className="flex items-center gap-3">
                 <Video className="size-4 text-ink-400 shrink-0" />
                 <span className="font-medium text-ink-950">{asset.title}</span>
-              </span>
-              <span className="text-xs text-ink-500">
-                {asset.source}
-                {asset.duration ? ` · ${asset.duration}` : ""}
+                {asset.duration && (
+                  <span className="text-xs text-ink-400">{asset.duration}</span>
+                )}
               </span>
               <span className="text-ink-800">
                 {asset.creatorId ? creatorMap.get(asset.creatorId) || "未知画像" : "无画像"}

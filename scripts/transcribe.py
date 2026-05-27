@@ -6,6 +6,11 @@ import argparse
 import sys
 import os
 
+# Force UTF-8 on Windows to prevent garbled Chinese output
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--audio", required=True, help="Path to 16kHz mono WAV file")

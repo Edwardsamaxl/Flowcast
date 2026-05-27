@@ -8,6 +8,7 @@ import { getEnv } from "@/lib/server/env";
 let dbInstance: ReturnType<typeof drizzle> | null = null;
 let sqlJsDb: SqlJsDatabase | null = null;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let autoSaveInterval: ReturnType<typeof setInterval> | null = null;
 
 const DB_FILENAME = "flowcast.db";
 
@@ -52,6 +53,11 @@ export async function initDb(): Promise<ReturnType<typeof drizzle>> {
   sqlJsDb.run("PRAGMA foreign_keys = ON");
 
   dbInstance = drizzle(sqlJsDb, { schema });
+
+  if (!autoSaveInterval) {
+    autoSaveInterval = setInterval(saveToDisk, 3000);
+  }
+
   return dbInstance;
 }
 
@@ -67,6 +73,10 @@ export function getSqlJsDb(): SqlJsDatabase {
 // Save and close
 export function closeDb() {
   if (saveTimer) clearTimeout(saveTimer);
+  if (autoSaveInterval) {
+    clearInterval(autoSaveInterval);
+    autoSaveInterval = null;
+  }
   saveToDisk();
   if (sqlJsDb) {
     sqlJsDb.close();

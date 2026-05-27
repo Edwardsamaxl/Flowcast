@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flowcast 路演</title>
+  <style>
+    :root{
+      --paper:#fafaf8;
+      --ink:#0a0a0a;
+      --muted:#696966;
+      --line:#d8d8d3;
+      --soft:#efefec;
+      --accent:#002FA7;
+      --accent-on:#ffffff;
+      --sans:Inter,"Helvetica Neue",Arial,"Microsoft YaHei UI","Noto Sans SC",sans-serif;
+      --mono:"JetBrains Mono","Cascadia Code",Consolas,monospace;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--ink);font-family:var(--sans);letter-spacing:0}
+    img{display:block;max-width:100%}
+    .deck{position:fixed;inset:0;display:flex;transition:transform .72s cubic-bezier(.77,0,.175,1)}
+    .slide{position:relative;width:100vw;height:100vh;flex:0 0 100vw;padding:5.2vh 5vw 7.2vh;background:var(--paper);overflow:hidden}
+    .slide.dark{background:var(--ink);color:var(--paper)}
+    .slide::after{content:"";position:absolute;left:5vw;right:5vw;bottom:4.3vh;height:1px;background:currentColor;opacity:.22}
+
+    .chrome{position:absolute;left:5vw;right:5vw;top:3.2vh;display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:.76vw;letter-spacing:.16em;text-transform:uppercase;color:inherit;opacity:.62;z-index:5}
+    .pager{position:fixed;right:2.1vw;bottom:2.1vh;z-index:20;background:var(--ink);color:var(--paper);border:1px solid var(--paper);padding:.58vh .75vw;font-family:var(--mono);font-size:.72vw;letter-spacing:.08em}
+    .hint{position:fixed;left:2.1vw;bottom:2.1vh;z-index:20;color:var(--paper);font-family:var(--mono);font-size:.68vw;letter-spacing:.08em;opacity:.74}
+
+    h1,h2,h3,p,figure{margin:0}
+    .mono{font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    .kicker{font-family:var(--mono);font-size:.78vw;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:600}
+    .h-cover{font-size:min(12.2vw,20vh);line-height:.86;font-weight:200;letter-spacing:-.04em}
+    .h-xl{font-size:min(5.7vw,10.2vh);line-height:1.02;font-weight:200;letter-spacing:-.025em}
+    .h-md{font-size:2.35vw;line-height:1.18;font-weight:300;letter-spacing:-.01em}
+    .lead{font-size:1.32vw;line-height:1.48;font-weight:400;color:var(--muted)}
+    .dark .lead{color:#c8c8c4}
+    .body{font-size:1.02vw;line-height:1.58;font-weight:400;color:#3f3f3c}
+    .dark .body{color:#d7d7d2}
+    .hairline{height:1px;background:currentColor;opacity:.24;width:100%}
+    .accent-block{background:var(--accent);color:var(--accent-on);padding:1.1vh 1vw;font-weight:600}
+    .ink-block{background:var(--ink);color:var(--paper);padding:1vh 1vw}
+
+    .cover{display:grid;grid-template-rows:1fr auto;height:100%;padding-top:10vh}
+    .cover-main{align-self:center}
+    .cover-slogan{margin-top:3.2vh;font-size:2.55vw;line-height:1.18;font-weight:300}
+    .cover-def{margin-top:4.2vh;width:44vw;padding-top:2vh;border-top:1px solid currentColor;font-size:1.22vw;line-height:1.45;color:var(--muted)}
+    .cover-mark{position:absolute;right:5vw;top:13vh;width:31vw;height:31vw;border:1px solid var(--line);display:grid;place-items:center;color:var(--accent)}
+    .cover-mark::before,.cover-mark::after{content:"";position:absolute;background:var(--accent)}
+    .cover-mark::before{width:78%;height:1px;transform:rotate(35deg)}
+    .cover-mark::after{width:1px;height:78%;transform:rotate(35deg)}
+    .cover-mark span{position:absolute;font-family:var(--mono);font-size:.78vw;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:var(--paper);padding:.6vh .8vw}
+
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:3vw;height:100%;padding-top:10vh;align-items:start}
+    .credential-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw;margin-top:4vh}
+    .credential{border-top:2px solid var(--ink);padding-top:1.2vh;min-height:10vh}
+    .credential small{display:block;font-family:var(--mono);font-size:.66vw;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+    .credential strong{display:block;margin-top:1vh;font-size:1.35vw;font-weight:600}
+    .poster-row{display:grid;grid-template-columns:1fr 1fr;gap:1vw;margin-top:3.6vh;height:31vh}
+    .evidence-card{background:white;border:1px solid var(--line);overflow:hidden;position:relative}
+    .evidence-card img{width:100%;height:100%;object-fit:cover;object-position:center top}
+    .evidence-card figcaption{position:absolute;left:0;bottom:0;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:.68vw;letter-spacing:.12em;text-transform:uppercase;padding:.64vh .7vw}
+    .social-wall{display:grid;grid-template-columns:repeat(3,1fr);gap:.8vw;height:67vh}
+    .phone{background:white;border:1px solid var(--line);overflow:hidden;position:relative}
+    .phone img{width:100%;height:100%;object-fit:cover;object-position:center top}
+    .phone figcaption{position:absolute;left:0;top:0;background:var(--accent);color:var(--accent-on);font-weight:600;font-size:.84vw;padding:.62vh .7vw}
+
+    .research{display:grid;grid-template-columns:19vw 1fr 23vw;gap:2vw;height:100%;padding-top:13vh}
+    .metrics{display:grid;gap:2.3vh;align-self:start}
+    .metric{border-top:2px solid var(--ink);padding-top:1.2vh}
+    .metric .num{font-size:7.6vw;line-height:.78;font-weight:200;letter-spacing:-.05em;color:var(--accent)}
+    .metric .label{margin-top:1.1vh;font-size:1.16vw;line-height:1.28;font-weight:600}
+    .wall-label{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1vh;font-weight:600}
+    .wall-label span:last-child{font-family:var(--mono);font-size:.62vw;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+    .sample-wall{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:.65vw;height:58vh}
+    .sample,.chat{background:white;border:1px solid var(--line);overflow:hidden}
+    .sample img,.chat img{width:100%;height:100%;object-fit:cover;object-position:center top}
+    .chat-stack{display:grid;grid-template-rows:repeat(4,1fr);gap:.65vw;height:58vh}
+
+    .pain{display:grid;grid-template-columns:39vw 1fr;gap:3.2vw;height:100%;padding-top:11vh}
+    .pain-list{display:grid;gap:1.2vh;margin-top:4vh}
+    .pain-item{display:grid;grid-template-columns:2.1vw 1fr;gap:1vw;border-top:1px solid var(--line);padding:1.4vh 0;font-size:1.18vw;line-height:1.48;font-weight:400}
+    .xmark{width:1.42vw;height:1.42vw;background:var(--accent);color:var(--accent-on);display:grid;place-items:center;font-family:var(--mono);font-size:.82vw;font-weight:700;margin-top:.35vh}
+    .competitor{border:1px solid var(--line);background:white;padding:1.4vh 1vw}
+    .competitor-shot{height:31vh;border:1px solid var(--line);display:grid;place-items:center;background:var(--soft);overflow:hidden}
+    .competitor-shot img{width:100%;height:100%;object-fit:contain}
+    .critique-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75vw;margin-top:1.3vh}
+    .critique{border:1px solid var(--accent);color:var(--accent);padding:1vh .7vw;text-align:center;font-size:1vw;font-weight:600}
+
+    .opportunity{display:grid;grid-template-columns:40vw 1fr;gap:3.4vw;height:100%;padding-top:20vh}
+    .radar{position:relative;height:48vh;border-right:1px solid var(--line)}
+    .radar svg{position:absolute;left:50%;top:50%;width:24vw;height:24vw;transform:translate(-50%,-50%)}
+    .radar-label{position:absolute;width:10vw;font-size:.98vw;line-height:1.3;font-weight:600}
+    .radar-label small{display:block;margin-top:.35vh;font-family:var(--mono);font-size:.58vw;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
+    .r1{left:15vw;top:0;text-align:center}.r2{right:.4vw;top:16.6vh}.r3{right:3vw;bottom:0}.r4{left:2vw;bottom:0;text-align:right}.r5{left:0;top:16.6vh;text-align:right}
+    .center-verdict{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:9vw;height:9vw;background:var(--accent);color:var(--accent-on);display:grid;place-items:center;text-align:center;font-size:1.18vw;line-height:1.18;font-weight:600}
+    .reason-list{display:grid;gap:.8vh}
+    .reason{display:grid;grid-template-columns:5.5vw 1fr;gap:1vw;border-top:1px solid var(--ink);padding:1.25vh 0}
+    .reason strong{font-size:1.1vw;color:var(--accent)}
+    .reason p{font-size:1vw;line-height:1.46;color:#343431}
+
+    .closing{display:grid;grid-template-columns:1fr 42vw;gap:4vw;height:100%;padding-top:13vh;align-items:center}
+    .qr-row{display:grid;grid-template-columns:1fr 1fr;gap:2vw}
+    .qr-card{border:1px solid var(--line);background:white;padding:1.3vh 1vw 1.5vh}
+    .qr-card img{width:100%;height:43vh;object-fit:contain;background:white}
+    .qr-card figcaption{border-top:1px solid var(--line);margin-top:1.2vh;padding-top:1vh;text-align:center;font-size:1.05vw;font-weight:600}
+    .flow-mini{display:flex;align-items:center;gap:.8vw;margin-top:5vh;flex-wrap:wrap}
+    .mini{border:1px solid currentColor;width:4.1vw;height:4.1vw;display:grid;place-items:center;font-size:.9vw;font-weight:600}
+    .arrow{font-family:var(--mono);color:var(--accent)}
+
+    .abs-title{position:absolute;left:5vw;top:8.6vh;z-index:2}
+    .p3-title{width:36vw}
+    .stamp{display:inline-block;border:2px solid var(--accent);color:var(--accent);padding:.9vh 1vw;font-size:1.1vw;line-height:1.25;font-weight:700;transform:rotate(-2deg);background:var(--paper)}
+
+    @media (max-aspect-ratio:4/3){
+      .slide{padding-left:4vw;padding-right:4vw}
+      .h-xl{font-size:5vw}
+      .lead{font-size:1.15vw}
+      .research{grid-template-columns:17vw 1fr 21vw}
+      .social-wall{height:62vh}
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" id="deck" aria-label="Flowcast 路演">
+    <section class="slide" data-title="封面">
+      <div class="chrome"><span>Flowcast / Roadshow</span><span>01 / 06</span></div>
+      <div class="cover">
+        <div class="cover-main">
+          <div class="kicker">Creator Workflow Tool</div>
+          <h1 class="h-cover">Flowcast</h1>
+          <p class="cover-slogan">让创作者的内容流转起来</p>
+          <p class="cover-def">面向创作者的多平台内容转写与资产沉淀工具</p>
+        </div>
+        <div class="mono" style="font-size:.78vw;color:var(--muted)">Content Transfer / Platform Adaptation / Asset Memory</div>
+      </div>
+      <div class="cover-mark" aria-hidden="true"><span>flow system</span></div>
+    </section>
+
+    <section class="slide" data-title="热爱与擅长">
+      <div class="chrome"><span>Founder Fit</span><span>02 / 06</span></div>
+      <div class="two-col">
+        <div>
+          <div class="kicker">热爱与擅长</div>
+          <h2 class="h-xl" style="margin-top:1.7vh">技术背景<br>和产品手感</h2>
+          <div class="credential-row">
+            <div class="credential"><small>Undergraduate</small><strong>软件工程</strong></div>
+            <div class="credential"><small>Graduate</small><strong>人工智能</strong></div>
+            <div class="credential"><small>Product</small><strong>做过产品</strong></div>
+          </div>
+          <div class="poster-row">
+            <figure class="evidence-card">
+              <img src="../html-images/产品海报/叙境.png" alt="叙境产品海报">
+              <figcaption>Product Proof 01</figcaption>
+            </figure>
+            <figure class="evidence-card">
+              <img src="../html-images/产品海报/搭映.png" alt="搭映产品海报">
+              <figcaption>Product Proof 02</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div>
+          <div class="wall-label"><span>创作经历</span><span>operator evidence wall</span></div>
+          <div class="social-wall" aria-label="平台运营截图">
+            <figure class="phone"><img src="../html-images/个人信息截图/抖音.jpg" alt="抖音运营截图"><figcaption>抖音</figcaption></figure>
+            <figure class="phone"><img src="../html-images/个人信息截图/小红书.jpg" alt="小红书运营截图"><figcaption>小红书</figcaption></figure>
+            <figure class="phone"><img src="../html-images/个人信息截图/X.jpg" alt="X 运营截图"><figcaption>X</figcaption></figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="需求分析">
+      <div class="chrome"><span>Demand Validation</span><span>03 / 06</span></div>
+      <div class="abs-title p3-title">
+        <div class="kicker">需求分析</div>
+        <h2 class="h-xl" style="font-size:min(4.5vw,8.2vh);margin-top:1.2vh">这是创作者的<br>“真需求”</h2>
+      </div>
+      <div class="research">
+        <div class="metrics" style="margin-top:19vh">
+          <div class="metric"><div class="num">8</div><div class="label">位创作者调研</div></div>
+          <div class="metric"><div class="num">6</div><div class="label">位明确有需求</div></div>
+          <div class="metric"><div class="num">1</div><div class="label">位已有自建工作流</div></div>
+        </div>
+        <div style="margin-top:6.8vh">
+          <div class="wall-label"><span>粉丝数截图 / 样本质量</span><span>creator authority</span></div>
+          <div class="sample-wall">
+            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/nini.png" alt="nini 粉丝数截图"></div>
+            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/Russell.png" alt="Russell 粉丝数截图"></div>
+            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/Yuvi.png" alt="Yuvi 粉丝数截图"></div>
+            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/小水同学.png" alt="小水同学粉丝数截图"></div>
+            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/得否.png" alt="得否粉丝数截图"></div>
+            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/百年.png" alt="百年粉丝数截图"></div>
+            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/蜗牛.png" alt="蜗牛粉丝数截图"></div>
+            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/西楚.png" alt="西楚粉丝数截图"></div>
+            <div class="sample"><img src="../html-images/产品调研/大V们的粉丝数截图/Linote.png" alt="Linote 粉丝数截图"></div>
+          </div>
+        </div>
+        <div style="margin-top:6.8vh">
+          <div class="wall-label"><span>微信交流 / 真实反馈</span><span>real chat</span></div>
+          <div class="chat-stack">
+            <div class="chat"><img src="../html-images/产品调研/微信交流截图/nini.png" alt="nini 微信交流截图"></div>
+            <div class="chat"><img src="../html-images/产品调研/微信交流截图/得否.png" alt="得否微信交流截图"></div>
+            <div class="chat"><img src="../html-images/产品调研/微信交流截图/小水同学.png" alt="小水同学微信交流截图"></div>
+            <div class="chat"><img src="../html-images/产品调研/微信交流截图/西楚.png" alt="西楚微信交流截图"></div>
+          </div>
+        </div>
+      </div>
+      <div class="stamp" style="position:absolute;right:5vw;top:8.3vh">样本质量 × 真实对话 × 结论强度</div>
+    </section>
+
+    <section class="slide" data-title="麻烦与竞品">
+      <div class="chrome"><span>Pain Point + Competitor</span><span>04 / 06</span></div>
+      <div class="pain">
+        <div>
+          <div class="kicker">创作者的麻烦 + 竞品分析</div>
+          <h2 class="h-xl" style="margin-top:1.4vh;font-size:min(4.6vw,8.5vh)">多平台分发是趋势，<br>但改写仍然很痛</h2>
+          <div class="pain-list">
+            <div class="pain-item"><span class="xmark">×</span><span>一篇内容要适配 X、小红书、公众号、抖音等平台。</span></div>
+            <div class="pain-item"><span class="xmark">×</span><span>不同平台语气、长度、结构、标题逻辑都不同。</span></div>
+            <div class="pain-item"><span class="xmark">×</span><span>创作者通常没时间维护完整人设和平台风格。</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="wall-label"><span>竞品输出截图</span><span>failure evidence</span></div>
+          <div class="competitor">
+            <div class="competitor-shot"><img src="../html-images/竞品/竞品展示.png" alt="竞品展示截图"></div>
+            <div class="critique-grid">
+              <div class="critique">AI 味重</div>
+              <div class="critique">不可直接发布</div>
+              <div class="critique">缺少个人风格</div>
+              <div class="critique">平台适配弱</div>
+            </div>
+          </div>
+          <p class="lead" style="margin-top:3vh;width:34vw">这不是“再做一个改写器”，而是把创作者长期重复的适配劳动，收进一个可复用的工作流。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="创业机会">
+      <div class="chrome"><span>Startup Opportunity</span><span>05 / 06</span></div>
+      <div class="abs-title" style="width:62vw">
+        <div class="kicker">为什么这是创业机会</div>
+        <h2 class="h-xl" style="font-size:min(4.5vw,8vh);margin-top:1.2vh">这不是一次性工具，<br>而是可持续工作流</h2>
+      </div>
+      <div class="opportunity">
+        <div class="radar" aria-label="五维机会判断图">
+          <svg viewBox="0 0 300 300" aria-hidden="true">
+            <polygon points="150,18 276,110 228,258 72,258 24,110" fill="none" stroke="#0a0a0a" stroke-width="1"></polygon>
+            <polygon points="150,64 232,124 201,219 99,219 68,124" fill="none" stroke="#d8d8d3" stroke-width="1"></polygon>
+            <polygon points="150,18 276,110 228,258 72,258 24,110" fill="rgba(0,47,167,.12)" stroke="#002FA7" stroke-width="3"></polygon>
+            <line x1="150" y1="150" x2="150" y2="18" stroke="#d8d8d3"></line>
+            <line x1="150" y1="150" x2="276" y2="110" stroke="#d8d8d3"></line>
+            <line x1="150" y1="150" x2="228" y2="258" stroke="#d8d8d3"></line>
+            <line x1="150" y1="150" x2="72" y2="258" stroke="#d8d8d3"></line>
+            <line x1="150" y1="150" x2="24" y2="110" stroke="#d8d8d3"></line>
+          </svg>
+          <div class="center-verdict">Flowcast<br>机会判断</div>
+          <div class="radar-label r1">高频<small>continuous need</small></div>
+          <div class="radar-label r2">明确用户<small>creator segment</small></div>
+          <div class="radar-label r3">更高效<small>less manual work</small></div>
+          <div class="radar-label r4">有付费能力<small>lighter than labor</small></div>
+          <div class="radar-label r5">可衡量<small>quality + data</small></div>
+        </div>
+        <div class="reason-list">
+          <div class="reason"><strong>高频</strong><p>只要持续创作，就持续需要内容沉淀和转写。</p></div>
+          <div class="reason"><strong>明确用户</strong><p>有跨平台增长需求的创作者。</p></div>
+          <div class="reason"><strong>更高效</strong><p>替代手动改写、整理人设、重复适配。</p></div>
+          <div class="reason"><strong>有付费能力</strong><p>相比几千元人力，一个月一两百的 AI 工具更轻。</p></div>
+          <div class="reason"><strong>可衡量</strong><p>结果能被创作者主观判断，也能被平台数据反馈。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide dark" data-title="欢迎体验">
+      <div class="chrome"><span>Live Conversion</span><span>06 / 06</span></div>
+      <div class="closing">
+        <div>
+          <div class="kicker" style="color:#85a2ff">感谢页 / 现场转化</div>
+          <h2 class="h-xl" style="margin-top:1.6vh;font-size:min(6vw,10.5vh)">欢迎体验<br>Flowcast</h2>
+          <div class="flow-mini" aria-label="内容流转流程">
+            <div class="mini">创作</div><span class="arrow">→</span>
+            <div class="mini">适配</div><span class="arrow">→</span>
+            <div class="mini">分发</div><span class="arrow">→</span>
+            <div class="mini">沉淀</div><span class="arrow">→</span>
+            <div class="mini">复用</div>
+          </div>
+          <p class="lead" style="margin-top:5vh;width:38vw">扫码预约演示，或加入产品体验群。和真实创作者一起，把高质量内容持续流转起来。</p>
+        </div>
+        <div class="qr-row">
+          <figure class="qr-card">
+            <img src="../html-images/反馈/本人二维码.jpg" alt="个人微信二维码">
+            <figcaption>个人微信</figcaption>
+          </figure>
+          <figure class="qr-card">
+            <img src="../html-images/反馈/产品体验群二维码.jpg" alt="产品体验群二维码">
+            <figcaption>产品体验群</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="hint">← / → 翻页 · 数字键跳转</div>
+  <div class="pager"><span id="current">01</span> / 06</div>
+
+  <script>
+    const deck = document.getElementById('deck');
+    const slides = [...document.querySelectorAll('.slide')];
+    const current = document.getElementById('current');
+    const initial = Number(new URLSearchParams(location.search).get('slide'));
+    let index = Number.isInteger(initial) && initial >= 1 && initial <= slides.length ? initial - 1 : 0;
+
+    function show(next){
+      index = Math.max(0, Math.min(slides.length - 1, next));
+      deck.style.transform = `translateX(${-index * 100}vw)`;
+      current.textContent = String(index + 1).padStart(2, '0');
+      document.title = `${slides[index].dataset.title || 'Flowcast'} · Flowcast 路演`;
+    }
+
+    window.addEventListener('keydown', event => {
+      if(event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' '){
+        event.preventDefault();
+        show(index + 1);
+      }
+      if(event.key === 'ArrowLeft' || event.key === 'PageUp'){
+        event.preventDefault();
+        show(index - 1);
+      }
+      if(/^[1-6]$/.test(event.key)) show(Number(event.key) - 1);
+    });
+
+    let startX = null;
+    window.addEventListener('pointerdown', event => { startX = event.clientX; });
+    window.addEventListener('pointerup', event => {
+      if(startX === null) return;
+      const delta = event.clientX - startX;
+      if(Math.abs(delta) > 60) show(index + (delta < 0 ? 1 : -1));
+      startX = null;
+    });
+
+    show(index);
+  </script>
+</body>
+</html>

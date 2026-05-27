@@ -32,12 +32,26 @@ export function buildTranscriptAnalysisPrompt(transcript: string): string {
 }
 
 export function buildCreatorProfileSuggestionPrompt(transcript: string, currentProfile?: CreatorProfile): string {
+  const example = {
+    additions: [
+      { field: "语气", value: "喜欢用反问句引发思考" },
+      { field: "高频观点", value: "长期主义比短期爆发更重要" }
+    ],
+    modifications: [
+      { field: "定位", from: "互联网运营专家", to: "SaaS 增长顾问" }
+    ],
+    evidence_segments: ["原文片段1", "原文片段2"]
+  };
+
   return [
     "你是中文创作者的人物表达画像分析助手。",
-    "你的任务是从视频转写中提出创作者画像更新建议，而不是直接覆盖旧画像。",
+    "你的任务是从视频转写中分析创作者表达特征，并提出画像更新建议。",
+    "建议分为两类：",
+    "  - additions：当前画像中没有的新特征（如新的语气、新的高频观点、新的常用案例）",
+    "  - modifications：当前画像中已有但需要调整的特征（如定位微调、语气修正）",
     "请输出严格 JSON，不要输出 Markdown。",
-    "JSON 字段必须包含：positioning_suggestions, tone_suggestions, belief_suggestions, case_suggestions, common_pattern_suggestions, avoid_phrase_suggestions, evidence_segments。",
-    currentProfile ? `当前创作者画像：${JSON.stringify(currentProfile)}` : "当前没有创作者画像。",
+    `输出格式示例：${JSON.stringify(example, null, 2)}`,
+    currentProfile ? `当前创作者画像（请基于此判断哪些是 additions，哪些是 modifications）：${JSON.stringify(currentProfile)}` : "当前没有创作者画像，所有建议都放入 additions。",
     "",
     "视频转写：",
     transcript
@@ -56,11 +70,19 @@ export function buildPlatformRewritePrompt(params: {
 }): string {
   const platformRule = params.voiceProfile?.platform_rules[params.platform] ?? defaultPlatformRules[params.platform];
 
+  const example = {
+    platform: params.platform,
+    title: "示例标题",
+    content: "示例文案内容...",
+    notes: ["选择这个角度是因为...", "平台适配点：..."]
+  };
+
   const lines = [
     "你是中文知识创作者的多平台内容改写助手。",
     "请根据原始转写、内容分析、人物画像和平台规则，生成可直接编辑的发布稿。",
     "请输出严格 JSON，不要输出 Markdown。",
     "JSON 字段必须包含：platform, title, content, notes。",
+    `输出格式示例：${JSON.stringify(example, null, 2)}`,
     `目标平台：${platformNames[params.platform]} (${params.platform})`,
     `平台规则：${platformRule}`,
     params.voiceProfile ? `人物画像：${JSON.stringify(params.voiceProfile)}` : "人物画像：无。请保持自然、克制、清晰。",
@@ -88,15 +110,25 @@ export function buildVoiceAlignedRewritePrompt(params: {
 }): string {
   const platformRule = params.voiceProfile?.platform_rules[params.platform] ?? defaultPlatformRules[params.platform];
 
+  const example = {
+    platform: params.platform,
+    title: "示例标题",
+    content: "示例文案内容...",
+    notes: ["选择这个角度是因为..."],
+    voice_alignment: {
+      matched_traits: ["语气一致", "观点一致"],
+      conflicts: ["案例与画像定位略有偏差"],
+      suggestions: ["改用画像中的常用案例以增强一致性"]
+    }
+  };
+
   return [
     "你是中文知识创作者的视频内容流转助手。",
     "你的任务不是泛泛改写，而是先判断这条视频内容与所选人物画像的关系，再按目标平台写成可发布文案。",
     "请输出严格 JSON，不要输出 Markdown。",
     "JSON 字段必须包含：platform, title, content, notes, voice_alignment。",
-    "voice_alignment 必须包含：matched_traits, conflicts, suggestions。",
-    "matched_traits 表示视频内容与人物画像一致的观点、语气、结构或禁用表达遵守情况。",
-    "conflicts 表示视频内容或生成稿可能与人物画像冲突的地方。",
-    "suggestions 表示为了更像该人物，本次改写采用的调整。",
+    `输出格式示例：${JSON.stringify(example, null, 2)}`,
+    "voice_alignment 必须包含：matched_traits, conflicts, suggestions（均为字符串数组）。",
     `目标平台：${platformNames[params.platform]} (${params.platform})`,
     `平台规则：${platformRule}`,
     params.voiceProfile ? `人物画像：${JSON.stringify(params.voiceProfile)}` : "人物画像：无。请保持自然、克制、清晰。",

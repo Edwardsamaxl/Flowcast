@@ -37,7 +37,9 @@
       "Read(//c/Users/Ed/AppData/Local/**)",
       "Bash(npx kill-port *)",
       "Bash(python -m json.tool /tmp/assets2.json)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(node *)",
+      "Bash(npx tsx *)"
     ]
   }
 }

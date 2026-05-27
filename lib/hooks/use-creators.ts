@@ -66,7 +66,9 @@ export function useCreators() {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Failed to create creator");
+    const result = await res.json() as { creatorId: string };
     await fetchCreators();
+    return result.creatorId;
   }, [fetchCreators]);
 
   const updateCreator = useCallback(async (id: string, data: Partial<CreatorProfile & { name: string }>) => {

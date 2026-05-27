@@ -25,6 +25,7 @@ export default function CreatePage() {
   const [asset, setAsset] = useState<Asset | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processStep, setProcessStep] = useState<"" | "transcribing" | "analyzing">("");
   const [processError, setProcessError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,6 +82,37 @@ export default function CreatePage() {
           setAsset(data);
           if (data.creatorId) setSelectedCreatorId(data.creatorId);
           setModule("content");
+          // Auto-process if user left before processing completed
+          if (data.status === "uploaded") {
+            setIsProcessing(true);
+            setProcessStep("transcribing");
+            fetch(`/api/assets/${data.id}/transcribe`, { method: "POST" })
+              .then((res) => {
+                if (!res.ok) throw new Error("转写失败");
+                return fetch(`/api/assets/${data.id}`);
+              })
+              .then((res) => res.json())
+              .then((updated: Asset) => {
+                setAsset(updated);
+                setProcessStep("analyzing");
+                return fetch(`/api/assets/${data.id}/analyze`, { method: "POST" });
+              })
+              .then((res) => {
+                if (!res.ok) throw new Error("分析失败");
+                return fetch(`/api/assets/${data.id}`);
+              })
+              .then((res) => res.json())
+              .then((processed: Asset) => {
+                setAsset(processed);
+              })
+              .catch((err) => {
+                setProcessError(err instanceof Error ? err.message : "解析失败");
+              })
+              .finally(() => {
+                setIsProcessing(false);
+                setProcessStep("");
+              });
+          }
         })
         .catch((err) => {
           setProcessError(err instanceof Error ? err.message : "加载素材失败");
@@ -88,7 +120,7 @@ export default function CreatePage() {
     }
   }, []);
 
-  // Initialize profile additions from LLM profile suggestion, falling back to analysis extraction
+  // Initialize profile additions/modifications from LLM profile suggestion, falling back to analysis extraction
   useEffect(() => {
     if (localAdditions.length > 0 || localModifications.length > 0) return;
 
@@ -96,17 +128,18 @@ export default function CreatePage() {
     if (profileSuggestion?.suggestions) {
       const sugg = profileSuggestion.suggestions;
       const additions: ProfileAddition[] = [];
-      const pushSuggestions = (field: string, items?: string[]) => {
+      const push = (field: string, items?: string[]) => {
         if (!items) return;
         items.forEach((v) => { if (v.trim()) additions.push({ field, value: v.trim() }); });
       };
-      pushSuggestions("定位", sugg.positioning_suggestions);
-      pushSuggestions("语气", sugg.tone_suggestions);
-      pushSuggestions("高频观点", sugg.belief_suggestions);
-      pushSuggestions("常用案例", sugg.case_suggestions);
-      pushSuggestions("常用结构", sugg.common_pattern_suggestions);
-      pushSuggestions("禁用表达", sugg.avoid_phrase_suggestions);
+      push("定位", sugg.positioning_suggestions);
+      push("语气", sugg.tone_suggestions);
+      push("高频观点", sugg.belief_suggestions);
+      push("常用案例", sugg.case_suggestions);
+      push("常用结构", sugg.common_pattern_suggestions);
+      push("禁用表达", sugg.avoid_phrase_suggestions);
       setLocalAdditions(additions);
+      setLocalModifications([]);
       return;
     }
 
@@ -188,27 +221,63 @@ export default function CreatePage() {
       formData.append("file", file);
       formData.append("type", "video");
       formData.append("title", file.name);
+      if (selectedCreatorId) formData.append("creatorId", selectedCreatorId);
+
       const res = await fetch("/api/assets", { method: "POST", body: formData });
       if (!res.ok) throw new Error("上传失败");
       const uploaded = (await res.json()) as Asset;
       setAsset(uploaded);
+      window.history.replaceState({}, "", `/create?assetId=${uploaded.id}`);
 
       setIsProcessing(true);
-      const processRes = await fetch(`/api/assets/${uploaded.id}`, { method: "POST" });
-      if (!processRes.ok) {
-        const err = await processRes.json() as { error?: string };
-        throw new Error(err.error || "解析失败");
+
+      setProcessStep("transcribing");
+      const transcribeRes = await fetch(`/api/assets/${uploaded.id}/transcribe`, { method: "POST" });
+      if (!transcribeRes.ok) {
+        const text = await transcribeRes.text();
+        let message = "转写失败";
+        try {
+          const err = JSON.parse(text) as { error?: string };
+          if (err.error) message = err.error;
+        } catch {
+          message = text.slice(0, 200) || `服务器错误 ${transcribeRes.status}`;
+        }
+        throw new Error(message);
       }
-      const processed = (await processRes.json()) as Asset;
-      setAsset(processed);
+
+      const transcribedAssetRes = await fetch(`/api/assets/${uploaded.id}`);
+      if (transcribedAssetRes.ok) {
+        setAsset(await transcribedAssetRes.json() as Asset);
+      }
+
+      setProcessStep("analyzing");
+      const analyzeRes = await fetch(`/api/assets/${uploaded.id}/analyze`, { method: "POST" });
+      if (!analyzeRes.ok) {
+        const text = await analyzeRes.text();
+        let message = "分析失败";
+        try {
+          const err = JSON.parse(text) as { error?: string };
+          if (err.error) message = err.error;
+        } catch {
+          message = text.slice(0, 200) || `服务器错误 ${analyzeRes.status}`;
+        }
+        throw new Error(message);
+      }
+
+      const analyzedAssetRes = await fetch(`/api/assets/${uploaded.id}`);
+      if (analyzedAssetRes.ok) {
+        setAsset(await analyzedAssetRes.json() as Asset);
+      }
+
       setModule("content");
     } catch (err) {
       setProcessError(err instanceof Error ? err.message : "未知错误");
     } finally {
       setIsUploading(false);
       setIsProcessing(false);
+      setProcessStep("");
     }
-  }, []);
+  }, [selectedCreatorId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -513,7 +582,9 @@ export default function CreatePage() {
                 ) : isProcessing ? (
                   <>
                     <Loader2 className="size-7 animate-spin text-seal-500" />
-                    <span className="mt-3 text-sm font-medium text-ink-600">正在解析（ASR + LLM 分析）...</span>
+                    <span className="mt-3 text-sm font-medium text-ink-600">
+                      {processStep === "transcribing" ? "正在转写音频..." : processStep === "analyzing" ? "正在分析内容..." : "正在解析..."}
+                    </span>
                   </>
                 ) : (
                   <>

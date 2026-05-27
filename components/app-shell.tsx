@@ -23,14 +23,12 @@ export function AppShell({
   return (
     <div className="min-h-screen text-ink-950">
       <aside className="fixed inset-y-0 left-0 hidden w-[264px] border-r border-paper-200 bg-paper-50/95 px-4 py-5 lg:block">
-        <Link href="/" className="group flex items-center gap-3 rounded-button px-2 py-2 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:translate-y-px">
-          <span className="grid size-10 place-items-center rounded-button bg-ink-950 font-editorial text-lg font-semibold text-paper-0 shadow-hairline">
-            流
-          </span>
-          <span>
-            <span className="block font-editorial text-xl font-semibold leading-tight">流转</span>
-            <span className="mt-0.5 block text-xs text-ink-600">内容流转工作台</span>
-          </span>
+        <Link href="/" className="group flex items-center rounded-button px-2 py-2 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:translate-y-px" aria-label="Flowcast 首页">
+          <img
+            src="/brand/flowcast-logo-v1.png"
+            alt="流转 Flowcast"
+            className="h-10 w-auto object-contain"
+          />
         </Link>
 
         <nav className="mt-9 space-y-1" aria-label="主导航">
@@ -55,11 +53,6 @@ export function AppShell({
           })}
         </nav>
 
-        <div className="absolute inset-x-4 bottom-5 border-t border-paper-200 pt-4">
-          <p className="text-xs leading-5 text-ink-600">
-            视频只会在用户确认后写入创作者画像。拆解内容默认只影响当前稿件。
-          </p>
-        </div>
       </aside>
 
       <div className="lg:pl-[264px]">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, Upload, Workflow } from "lucide-react";
+import { ArrowRight, Check, Sparkles, Upload } from "lucide-react";
 import { LogoImage } from "@/components/logo-image";
 
 const platforms = [
@@ -7,7 +7,7 @@ const platforms = [
   { name: "知乎", logo: "/logos/知乎.png" },
   { name: "X", logo: "/logos/X.jpeg" },
   { name: "抖音", logo: "/logos/抖音.png" },
-  { name: "B 站", logo: "/logos/Bilibili.png" },
+  { name: "B 站", logo: "/logos/Bilibili-icon.png" },
 ];
 
 const flowCards = [
@@ -46,7 +46,7 @@ const flowCards = [
 const platformSamples = [
   ["小红书", "/logos/小红书.png", "标题直接\n场景强\n短段落种草"],
   ["抖音", "/logos/抖音.png", "前三秒抓人\n口语推进\n结尾落行动"],
-  ["B 站", "/logos/Bilibili.png", "结构完整\n适合动态\n适合简介"],
+  ["B 站", "/logos/Bilibili-icon.png", "结构完整\n适合动态\n适合简介"],
   ["知乎", "/logos/知乎.png", "结论先行\n解释原因\n论证感更强"],
   ["X", "/logos/X.jpeg", "短句观点串\n节奏更快\n适合转发"],
 ];
@@ -73,15 +73,6 @@ const faqs = [
     "暂不支持自动发布，当前重点是生成可编辑、可复制、可沉淀的多平台内容版本",
   ],
 ];
-
-function LogoMark() {
-  return (
-    <span className="relative grid size-10 place-items-center rounded-full border border-seal-500/20 text-seal-600">
-      <span className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-seal-500" />
-      <span className="absolute left-1/2 top-1/2 h-8 w-px -translate-x-1/2 -translate-y-1/2 rotate-45 bg-seal-500" />
-    </span>
-  );
-}
 
 function FlowVisual({ type }: { type: string }) {
   if (type === "upload") {
@@ -122,30 +113,28 @@ function FlowVisual({ type }: { type: string }) {
 
   if (type === "radar") {
     return (
-      <div className="relative mx-auto h-28 w-36">
-        <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-seal-500/18" />
-        <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-seal-500/25" />
-        <div className="absolute left-1/2 top-4 h-20 w-px -translate-x-1/2 bg-seal-500/20" />
-        <div className="absolute left-5 top-1/2 h-px w-28 -translate-y-1/2 bg-seal-500/20" />
-        <div className="absolute left-[43px] top-[34px] h-[54px] w-[58px] rotate-12 border border-seal-500 bg-seal-500/10" />
-      </div>
+      <img
+        src="/brand/creator-dimension-map.png"
+        alt="定位、观点、语气、结构四个创作者画像维度图"
+        className="mx-auto h-28 w-full max-w-[180px] object-contain"
+      />
     );
   }
 
   return (
-    <div className="mx-auto grid h-28 max-w-[176px] gap-1.5">
+    <div className="mx-auto grid h-28 max-w-[176px] content-center gap-1">
       {platforms.map((platform) => (
-        <div key={platform.name} className="flex min-w-0 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-2.5 py-1">
-          <LogoImage src={platform.logo} alt={platform.name} className={platform.name === "B 站" ? "h-3 w-5 shrink-0" : "size-4 shrink-0"} />
+        <div key={platform.name} className="flex min-h-5 min-w-0 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-2.5 py-0.5">
+          <LogoImage src={platform.logo} alt={platform.name} className="size-3.5 shrink-0" />
           <span className="truncate text-[11px] font-medium text-ink-700">{platform.name}</span>
-          <span className="ml-auto h-1.5 w-9 shrink-0 rounded-full bg-paper-200" />
+          <span className="ml-auto h-1.5 w-8 shrink-0 rounded-full bg-paper-200" />
         </div>
       ))}
     </div>
   );
 }
 
-function FlowCard({ card, isLast }: { card: (typeof flowCards)[number]; isLast: boolean }) {
+function FlowCard({ card }: { card: (typeof flowCards)[number] }) {
   return (
     <div className="relative">
       <article className="min-h-[236px] rounded-[10px] border border-paper-200 bg-paper-0 p-5 shadow-sheet">
@@ -158,12 +147,6 @@ function FlowCard({ card, isLast }: { card: (typeof flowCards)[number]; isLast: 
         </div>
         <p className="mt-4 whitespace-pre-line text-center text-[13px] leading-relaxed text-ink-600">{card.body}</p>
       </article>
-      {!isLast ? (
-        <div className="absolute left-full top-1/2 z-10 hidden w-[58px] -translate-y-1/2 items-center lg:flex">
-          <span className="h-px flex-1 bg-seal-500" />
-          <span className="size-3 rounded-full border-2 border-seal-500 bg-paper-0" />
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -182,9 +165,12 @@ export default function LandingPage() {
   return (
     <main className="min-h-[100dvh] bg-paper-0 text-ink-950">
       <header className="mx-auto flex h-[76px] max-w-[1440px] items-center px-6 lg:px-14">
-        <Link href="/" className="flex items-center gap-3" aria-label="Flowcast 首页">
-          <LogoMark />
-          <span className="font-editorial text-[24px] font-semibold leading-none text-ink-950">流转 Flowcast</span>
+        <Link href="/" className="flex items-center" aria-label="Flowcast 首页">
+          <img
+            src="/brand/flowcast-logo-v1.png"
+            alt="流转 Flowcast"
+            className="h-11 w-auto object-contain"
+          />
         </Link>
       </header>
 
@@ -192,7 +178,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-[1320px] text-center">
           <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-paper-200 bg-paper-0 px-6 py-3 text-[15px] font-semibold text-seal-600 shadow-sheet">
             <span className="grid size-6 place-items-center rounded-full bg-seal-500/10 text-seal-600">
-              <Workflow className="size-3.5" strokeWidth={2} aria-hidden="true" />
+              <Sparkles className="size-3.5" strokeWidth={2} aria-hidden="true" />
             </span>
             跨模态的专属内容知识库与流转引擎
           </p>
@@ -203,20 +189,20 @@ export default function LandingPage() {
             把已有内容沉淀成创作者画像，再根据你的观点、语气和结构，流转成适合不同平台发布的内容版本
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link href="/library" className="inline-flex min-w-[220px] items-center justify-center gap-3 rounded-button bg-seal-500 px-7 py-4 text-[16px] font-semibold text-paper-0 shadow-action">
+            <Link href="/library" className="inline-flex min-w-[240px] items-center justify-center gap-3 rounded-button bg-seal-500 px-8 py-[18px] text-[17px] font-semibold text-paper-0 shadow-action">
               创建创作者画像
-              <ArrowRight className="size-4" strokeWidth={2} aria-hidden="true" />
+              <ArrowRight className="size-[18px]" strokeWidth={2} aria-hidden="true" />
             </Link>
-            <Link href="/create" className="inline-flex min-w-[220px] items-center justify-center gap-3 rounded-button border border-seal-500/55 bg-paper-0 px-7 py-4 text-[16px] font-semibold text-ink-950">
+            <Link href="/create" className="inline-flex min-w-[240px] items-center justify-center gap-3 rounded-button border border-seal-500/55 bg-paper-0 px-8 py-[18px] text-[17px] font-semibold text-ink-950">
               进入流转工作台
-              <ArrowRight className="size-4" strokeWidth={2} aria-hidden="true" />
+              <ArrowRight className="size-[18px]" strokeWidth={2} aria-hidden="true" />
             </Link>
           </div>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3 text-[14px] text-ink-500">
             <span>支持平台：</span>
             {platforms.map((platform) => (
               <span key={platform.name} className="inline-flex items-center gap-2 rounded-full border border-paper-200 bg-paper-0 px-3 py-2 shadow-hairline">
-                <LogoImage src={platform.logo} alt={platform.name} className={platform.name === "B 站" ? "h-4 w-7" : "size-5"} />
+                <LogoImage src={platform.logo} alt={platform.name} className="size-5" />
                 <span className="font-medium text-ink-700">{platform.name}</span>
               </span>
             ))}
@@ -226,12 +212,12 @@ export default function LandingPage() {
         <div id="flow" className="mx-auto mt-14 max-w-[1240px]">
           <SectionTitle
             eyebrow="流转路径"
-            title="内容上传、转写解析、画像沉淀、多平台输出"
-            body="从上传到解析、确认、沉淀、输出，用户能看见内容正在跨平台转换"
+            title="把一次表达，变成可复用的内容资产"
+            body="上传原始素材后，系统先拆出观点和结构，再由你确认哪些内容写入创作者画像，最后生成不同平台版本"
           />
           <div className="mx-auto mt-10 grid gap-8 lg:grid-cols-5">
-            {flowCards.map((card, index) => (
-              <FlowCard key={card.no} card={card} isLast={index === flowCards.length - 1} />
+            {flowCards.map((card) => (
+              <FlowCard key={card.no} card={card} />
             ))}
           </div>
         </div>
@@ -240,8 +226,8 @@ export default function LandingPage() {
       <section id="platforms" className="border-y border-paper-200 bg-[#fbf7ef] px-6 py-16 lg:px-14">
         <SectionTitle
           eyebrow="平台输出"
-          title="同一份观点，按平台语境改写"
-          body="重点不是只展示平台 Logo，而是让用户看到同一份内容在不同平台中的表达差异"
+          title="让内容像是为每个平台单独写过"
+          body="系统会调整开头钩子、语气节奏、段落结构和行动指令，而不只是替换平台名称"
         />
         <div className="mx-auto mt-10 grid max-w-[1120px] gap-4 md:grid-cols-2 lg:grid-cols-5">
           {platformSamples.map(([name, logo, sample]) => (

@@ -100,7 +100,6 @@ export const sourceVideos = [
   {
     id: "v-20260521",
     title: "普通人考研最容易高估自己的执行力",
-    source: "直播回放",
     duration: "42:18",
     status: "已解析，待确认" as const,
     libraryState: "待写入画像" as const,
@@ -127,7 +126,6 @@ export const sourceVideos = [
   {
     id: "v-20260518",
     title: "为什么资料越多，越容易不开始",
-    source: "课程录屏",
     duration: "31:04",
     status: "已写入画像" as const,
     libraryState: "已写入画像" as const,
@@ -149,7 +147,6 @@ export const sourceVideos = [
   {
     id: "v-20260513",
     title: "职场新人不要把复盘写成检讨书",
-    source: "短视频口播",
     duration: "06:47",
     status: "转写完成" as const,
     libraryState: "未写入" as const,
@@ -186,7 +183,6 @@ export const historyTasks = [
   {
     id: "task-20260525-01",
     title: generatedDraft.title,
-    source: sourceVideos[0].title,
     persona: personas[0].name,
     platforms: ["小红书", "知乎"] as string[],
     status: "已生成" as const,
@@ -197,7 +193,6 @@ export const historyTasks = [
   {
     id: "task-20260524-02",
     title: "资料越多，越容易不开始",
-    source: sourceVideos[1].title,
     persona: personas[0].name,
     platforms: ["知乎"] as string[],
     status: "已沉淀" as const,
@@ -208,7 +203,6 @@ export const historyTasks = [
   {
     id: "task-20260523-03",
     title: "复盘不是检讨书",
-    source: sourceVideos[2].title,
     persona: "无画像" as const,
     platforms: ["X"] as string[],
     status: "草稿" as const,

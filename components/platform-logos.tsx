@@ -3,7 +3,7 @@
 const logoMap: Record<string, string> = {
   xiaohongshu: "/logos/小红书.png",
   douyin: "/logos/抖音.png",
-  bilibili: "/logos/Bilibili.png",
+  bilibili: "/logos/Bilibili-icon.png",
   zhihu: "/logos/知乎.png",
   x: "/logos/X.jpeg",
 };

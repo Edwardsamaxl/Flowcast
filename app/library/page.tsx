@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Pencil, Plus, X,
   User, Lightbulb, BookOpen, Ban, Layers,
@@ -9,7 +9,7 @@ import {
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { SectionTitle } from "@/components/ui";
-import { personas, sourceVideos, platformMeta } from "@/lib/data";
+import { sourceVideos, platformMeta } from "@/lib/data";
 import type { Platform } from "@/lib/pipeline/types";
 import { useCreators } from "@/lib/hooks/use-creators";
 import { PlatformLogo } from "@/components/platform-logos";
@@ -18,26 +18,61 @@ type View = "profile" | "new" | "edit";
 
 export default function LibraryPage() {
   const router = useRouter();
-  const { createCreator, updateCreator } = useCreators();
+  const { creators, createCreator, updateCreator } = useCreators();
 
-  const [localPersonas, setLocalPersonas] = useState(personas);
-  const [activePersonaId, setActivePersonaId] = useState(personas[0].id);
-  const activePersona = localPersonas.find((p) => p.id === activePersonaId) || localPersonas[0];
+  const personasFromApi = useMemo(() => {
+    return creators.map((c) => ({
+      id: c.id,
+      name: c.name,
+      status: "当前使用" as const,
+      positioning: c.profile?.positioning || "",
+      domain: c.profile?.domain || "",
+      tone: c.profile?.tone || [],
+      beliefs: c.profile?.beliefs || [],
+      cases: c.profile?.cases || [],
+      patterns: c.profile?.commonPatterns || [],
+      avoidPhrases: c.profile?.avoidPhrases || [],
+      titlePreference: c.profile?.titlePreference || "",
+      platformRules: (c.profile?.platformRules || {}) as Record<Platform, string>,
+    }));
+  }, [creators]);
+
+  const [activePersonaId, setActivePersonaId] = useState<string>("");
+  const activePersona = personasFromApi.find((p) => p.id === activePersonaId) || personasFromApi[0] || {
+    id: "",
+    name: "无创作者",
+    status: "当前使用" as const,
+    positioning: "",
+    domain: "",
+    tone: [],
+    beliefs: [],
+    cases: [],
+    patterns: [],
+    avoidPhrases: [],
+    titlePreference: "",
+    platformRules: {} as Record<Platform, string>,
+  };
+
+  useEffect(() => {
+    if (personasFromApi.length > 0 && !activePersonaId) {
+      setActivePersonaId(personasFromApi[0].id);
+    }
+  }, [personasFromApi, activePersonaId]);
 
   const [view, setView] = useState<View>("profile");
 
   const [editingRules, setEditingRules] = useState(false);
-  const [ruleDraft, setRuleDraft] = useState<Record<Platform, string>>({ ...activePersona.platformRules });
+  const [ruleDraft, setRuleDraft] = useState<Record<Platform, string>>({} as Record<Platform, string>);
 
   const [editDraft, setEditDraft] = useState({
-    name: activePersona.name,
-    positioning: activePersona.positioning,
-    domain: activePersona.domain,
-    tone: activePersona.tone.join(", "),
-    beliefs: activePersona.beliefs.join("\n"),
-    cases: activePersona.cases.join("\n"),
-    patterns: activePersona.patterns.join("\n"),
-    avoidPhrases: activePersona.avoidPhrases.join("\n"),
+    name: "",
+    positioning: "",
+    domain: "",
+    tone: "",
+    beliefs: "",
+    cases: "",
+    patterns: "",
+    avoidPhrases: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -56,26 +91,9 @@ export default function LibraryPage() {
 
   const linkedMaterials = sourceVideos.filter((v) => v.deposited);
 
-  const switchPersona = (id: string) => {
-    setActivePersonaId(id);
-    setView("profile");
-    const p = localPersonas.find((x) => x.id === id);
-    if (p) {
-      setRuleDraft({ ...p.platformRules });
-      setEditDraft({
-        name: p.name,
-        positioning: p.positioning,
-        domain: p.domain,
-        tone: p.tone.join(", "),
-        beliefs: p.beliefs.join("\n"),
-        cases: p.cases.join("\n"),
-        patterns: p.patterns.join("\n"),
-        avoidPhrases: p.avoidPhrases.join("\n"),
-      });
-    }
-  };
-
-  const enterEdit = () => {
+  // Sync editDraft and ruleDraft when active persona changes
+  useEffect(() => {
+    if (!activePersona.id) return;
     setEditDraft({
       name: activePersona.name,
       positioning: activePersona.positioning,
@@ -86,6 +104,15 @@ export default function LibraryPage() {
       patterns: activePersona.patterns.join("\n"),
       avoidPhrases: activePersona.avoidPhrases.join("\n"),
     });
+    setRuleDraft({ ...activePersona.platformRules });
+  }, [activePersona.id]);
+
+  const switchPersona = (id: string) => {
+    setActivePersonaId(id);
+    setView("profile");
+  };
+
+  const enterEdit = () => {
     setView("edit");
   };
 
@@ -105,23 +132,6 @@ export default function LibraryPage() {
         avoidPhrases: editDraft.avoidPhrases.split("\n").map((s) => s.trim()).filter(Boolean),
       };
       await updateCreator(activePersonaId, payload);
-      setLocalPersonas((prev) =>
-        prev.map((p) =>
-          p.id === activePersonaId
-            ? {
-                ...p,
-                name: payload.name,
-                positioning: payload.positioning,
-                domain: payload.domain,
-                tone: payload.tone,
-                beliefs: payload.beliefs,
-                cases: payload.cases,
-                patterns: payload.commonPatterns,
-                avoidPhrases: payload.avoidPhrases,
-              }
-            : p
-        )
-      );
       setView("profile");
     } catch (err) {
       alert(err instanceof Error ? err.message : "保存失败");
@@ -135,7 +145,7 @@ export default function LibraryPage() {
     setCreating(true);
     setCreateError(null);
     try {
-      await createCreator({
+      const newId = await createCreator({
         name: newDraft.name.trim(),
         positioning: newDraft.positioning,
         domain: newDraft.domain,
@@ -148,24 +158,6 @@ export default function LibraryPage() {
           Object.entries(platformMeta).map(([k, v]) => [k, v.rule])
         ) as Record<string, string>,
       });
-      const newId = "local-" + Date.now();
-      const freshPersona = {
-        id: newId,
-        name: newDraft.name.trim(),
-        status: "当前使用" as const,
-        positioning: newDraft.positioning || "",
-        domain: newDraft.domain || "",
-        tone: newDraft.tone.split(",").map((s) => s.trim()).filter(Boolean),
-        beliefs: newDraft.beliefs.split("\n").map((s) => s.trim()).filter(Boolean),
-        cases: newDraft.cases.split("\n").map((s) => s.trim()).filter(Boolean),
-        patterns: newDraft.patterns.split("\n").map((s) => s.trim()).filter(Boolean),
-        avoidPhrases: newDraft.avoidPhrases.split("\n").map((s) => s.trim()).filter(Boolean),
-        titlePreference: "",
-        platformRules: Object.fromEntries(
-          Object.entries(platformMeta).map(([k, v]) => [k, v.rule])
-        ) as Record<Platform, string>,
-      };
-      setLocalPersonas((prev) => [...prev, freshPersona]);
       setActivePersonaId(newId);
       setView("profile");
       setNewDraft({ name: "", positioning: "", domain: "", tone: "", beliefs: "", cases: "", patterns: "", avoidPhrases: "" });
@@ -181,12 +173,15 @@ export default function LibraryPage() {
     setCreateError(null);
   };
 
-  const dimensionCount =
-    (activePersona.positioning ? 1 : 0) +
-    activePersona.beliefs.length +
-    activePersona.cases.length +
-    activePersona.patterns.length +
-    activePersona.avoidPhrases.length;
+  const dimensionCount = [
+    activePersona.positioning,
+    activePersona.domain,
+    activePersona.tone.length > 0,
+    activePersona.beliefs.length > 0,
+    activePersona.cases.length > 0,
+    activePersona.patterns.length > 0,
+    activePersona.avoidPhrases.length > 0,
+  ].filter(Boolean).length;
 
   return (
     <AppShell
@@ -207,7 +202,7 @@ export default function LibraryPage() {
                   value={activePersonaId}
                   onChange={(e) => switchPersona(e.target.value)}
                 >
-                  {localPersonas.map((p) => (
+                  {personasFromApi.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
@@ -265,10 +260,10 @@ export default function LibraryPage() {
                 <div className="mt-1.5 h-1.5 w-full rounded-full bg-paper-200">
                   <div
                     className="h-1.5 rounded-full bg-seal-500 transition-all"
-                    style={{ width: `${Math.min(100, (dimensionCount / 10) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (dimensionCount / 7) * 100)}%` }}
                   />
                 </div>
-                <p className="mt-1 text-[10px] text-ink-400">{dimensionCount} / 10 个维度已完善</p>
+                <p className="mt-1 text-[10px] text-ink-400">{dimensionCount} / 7 个维度已完善</p>
               </div>
             )}
           </section>
@@ -427,7 +422,11 @@ export default function LibraryPage() {
                     <SectionTitle title="平台写法规则" description="规则可编辑，生成时与创作者画像一起调用。" />
                     <button
                       onClick={() => {
-                        if (!editingRules) setRuleDraft({ ...activePersona.platformRules });
+                        if (editingRules) {
+                          updateCreator(activePersonaId, { platformRules: ruleDraft }).catch(() => {});
+                        } else {
+                          setRuleDraft({ ...activePersona.platformRules });
+                        }
                         setEditingRules((v) => !v);
                       }}
                       className={`inline-flex h-8 items-center gap-1.5 rounded-button px-3 text-xs font-medium ${

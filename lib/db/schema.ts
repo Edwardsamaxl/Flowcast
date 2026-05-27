@@ -43,7 +43,6 @@ export const sourceAssets = sqliteTable("source_assets", {
   creatorId: text("creator_id"), // nullable — asset may not be tied to a creator yet
   type: text("type").notNull(),   // "video" | "audio" | "image" | "text"
   title: text("title").notNull().default(""),
-  source: text("source").notNull().default(""),  // "直播回放", "课程录屏", etc.
   filePath: text("file_path").notNull().default(""),
   duration: text("duration").notNull().default(""),
   status: text("status").notNull().default("uploaded"),

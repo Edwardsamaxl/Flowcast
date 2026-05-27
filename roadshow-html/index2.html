@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flowcast 路演</title>
+  <style>
+    :root{--paper:#fafaf8;--ink:#0a0a0a;--muted:#737373;--line:#d4d4d2;--soft:#f0f0ee;--accent:#002fa7;--font:Inter,"Helvetica Neue",Arial,"Microsoft YaHei UI","Noto Sans SC",sans-serif;--mono:"JetBrains Mono",Consolas,monospace}
+    *{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden;background:var(--paper);color:var(--ink);font-family:var(--font)}button{font:inherit}
+    .deck{height:100vh;display:flex;transform:translateX(calc(var(--i,0)*-100vw));transition:transform .52s cubic-bezier(.2,0,.1,1)}
+    .slide{width:100vw;height:100vh;flex:0 0 100vw;padding:5.4vh 5vw 6.8vh;display:grid;grid-template-rows:auto auto 1fr auto;gap:3vh;position:relative;overflow:hidden;background:var(--paper)}
+    .slide.dark{background:var(--ink);color:var(--paper)}.slide.accent{background:var(--accent);color:white}.slide.soft{background:var(--soft)}
+    .chrome{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:1.4vh;color:var(--muted);font:clamp(10px,.78vw,14px)/1 var(--mono);text-transform:uppercase;letter-spacing:.04em}
+    .dark .chrome,.accent .chrome{border-bottom-color:rgba(255,255,255,.22);color:rgba(255,255,255,.7)}
+    h1,h2,h3,p{margin:0}.eyebrow{font:clamp(10px,.8vw,14px)/1 var(--mono);text-transform:uppercase;color:var(--muted);margin-bottom:1.8vh}.dark .eyebrow,.accent .eyebrow{color:rgba(255,255,255,.68)}
+    .title-xl{font-weight:200;font-size:min(10.8vw,17vh);line-height:.92;letter-spacing:0}.title-lg{font-weight:200;font-size:min(5.2vw,9.2vh);line-height:1.02;letter-spacing:0}
+    .lead{font-size:clamp(20px,2.25vw,40px);line-height:1.35;font-weight:300;max-width:38ch}.body{font-size:clamp(14px,1.05vw,20px);line-height:1.65;font-weight:300;color:#2c2c2c}.dark .body{color:rgba(255,255,255,.8)}
+    .hero{align-self:center;display:grid;gap:4vh;max-width:72vw}.hero-rule{width:min(58vw,780px);border-top:1px solid rgba(255,255,255,.32);padding-top:2.2vh}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:4vw;min-height:0}.grid-3{display:grid;grid-template-columns:1.05fr 1.45fr 1.25fr;gap:2.4vw;min-height:0}.panel{display:grid;gap:2vh;align-content:start;min-height:0}.hair{border-top:1px solid var(--line);padding-top:2vh}.dark .hair{border-color:rgba(255,255,255,.22)}
+    .card{background:#fff;border:1px solid var(--line);overflow:hidden;min-height:0}.card img,.fit{width:100%;height:100%;display:block;object-fit:cover}.contain{object-fit:contain;background:#fff}.cap{font:clamp(10px,.72vw,13px)/1.2 var(--mono);color:var(--muted);margin-top:.8vh;text-transform:uppercase}
+    .posters{display:grid;grid-template-columns:1fr 1fr;gap:1.2vw;height:32vh}.wall-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2vw;min-height:0}.wall-3 .card{height:68vh}
+    .stats{display:grid;gap:2.1vh;align-content:center}.stat{border-top:1px solid var(--line);padding-top:1.4vh}.num{font:300 min(8.5vw,14vh)/.9 var(--mono);color:var(--accent)}.stat span{display:block;color:var(--muted);font-size:clamp(13px,1vw,18px);margin-top:.5vh}
+    .samples{display:grid;grid-template-columns:repeat(3,1fr);gap:.8vw}.samples .card{height:18.5vh}.chats{display:grid;grid-template-rows:repeat(9,1fr);gap:.8vh;min-height:0}.chats img{object-fit:contain}
+    .pain{display:grid;gap:2.2vh;align-content:center}.pain-item{display:grid;grid-template-columns:4.2vw 1fr;gap:1.4vw;border-top:1px solid rgba(255,255,255,.22);padding-top:2vh}.pain-no{font:200 min(3.5vw,6vh)/.95 var(--mono);color:rgba(255,255,255,.56)}.pain-text{font-size:clamp(18px,1.7vw,30px);line-height:1.35;font-weight:300}
+    .competitor{align-self:center;display:grid;gap:2vh}.competitor .card{height:42vh}.tags{display:grid;grid-template-columns:repeat(4,1fr);gap:.7vw}.tag{border:1px solid rgba(255,255,255,.32);padding:1.1vh .9vw;text-align:center;color:rgba(255,255,255,.84);font-size:clamp(12px,.9vw,16px)}
+    .oppo{display:grid;grid-template-columns:.9fr 1.2fr;gap:4vw;align-items:center}.radar{aspect-ratio:1;border:1px solid var(--line);display:grid;place-items:center;position:relative}.axis{position:absolute;background:var(--line)}.axis.v{width:1px;top:0;bottom:0;left:50%}.axis.h{height:1px;left:0;right:0;top:50%}.radar:before,.radar:after{content:"";position:absolute;border:1px solid var(--line)}.radar:before{inset:18%}.radar:after{inset:34%}.core{width:36%;aspect-ratio:1;background:var(--accent);color:white;display:grid;place-items:center;font:clamp(12px,1vw,18px)/1 var(--mono);z-index:1}.rlabel{position:absolute;background:var(--paper);padding:.6vh .8vw;font-size:clamp(13px,1.2vw,22px);font-weight:300}.l1{top:4%;left:50%;transform:translateX(-50%)}.l2{right:3%;top:34%}.l3{right:14%;bottom:7%}.l4{left:9%;bottom:7%}.l5{left:3%;top:34%}
+    .reasons{display:grid;gap:1.35vh}.reason{display:grid;grid-template-columns:8ch 1fr;gap:1.4vw;border-top:1px solid var(--line);padding-top:1.45vh}.reason strong{font-weight:500;color:var(--accent)}
+    .qr{display:grid;grid-template-columns:.85fr 1.15fr;gap:5vw;align-items:center}.qr-grid{display:grid;grid-template-columns:1fr 1fr;gap:2vw}.qr-card{background:#fff;border:1px solid var(--line);padding:2vh;display:grid;gap:1.4vh}.qr-card img{width:100%;height:45vh;object-fit:contain}.qr-card h3{font-size:clamp(18px,1.6vw,28px);font-weight:400}
+    .nav{position:fixed;left:5vw;right:5vw;bottom:2.2vh;display:flex;justify-content:space-between;align-items:center;pointer-events:none;color:var(--muted);font:clamp(10px,.75vw,13px)/1 var(--mono);z-index:9}.dots{display:flex;gap:8px;pointer-events:auto}.dot{width:18px;height:3px;border:0;background:var(--line);padding:0;cursor:pointer}.dot.active{background:var(--accent)}.on-dark .nav{color:rgba(255,255,255,.64)}.on-dark .dot{background:rgba(255,255,255,.26)}.on-dark .dot.active{background:white}
+    .overview .deck{transform:none!important;flex-wrap:wrap;overflow:auto;width:100vw;height:100vh;padding:2vw;gap:2vw;background:var(--ink)}.overview .slide{transform:scale(.23);transform-origin:top left;margin-right:-77vw;margin-bottom:-77vh;box-shadow:0 0 0 1px rgba(255,255,255,.25);cursor:pointer}.overview .nav{display:none}
+    @media(max-width:900px){.slide{padding:4.8vh 5vw 7.2vh;gap:2.2vh}.grid-2,.grid-3,.oppo,.qr{grid-template-columns:1fr}.wall-3 .card{height:31vh}.posters{height:24vh}.samples .card{height:10vh}.chats{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}.tags,.qr-grid{grid-template-columns:1fr 1fr}.qr-card img{height:24vh}}
+  </style>
+</head>
+<body>
+  <main class="deck" id="deck">
+    <section class="slide accent" data-kind="dark">
+      <div class="chrome"><span>FLOWCAST / ROADSHOW</span><span>01 / 06</span></div>
+      <div></div>
+      <div class="hero">
+        <div><div class="eyebrow">Creator workflow infrastructure</div><h1 class="title-xl">Flowcast</h1></div>
+        <div class="hero-rule"><p class="lead">让创作者的内容流转起来</p><p class="body" style="color:rgba(255,255,255,.78);margin-top:1.4vh;max-width:44ch">面向创作者的多平台内容转写与资产沉淀工具</p></div>
+      </div>
+      <div class="chrome"><span>Multi-platform rewrite / creator memory</span><span>Arrow keys</span></div>
+    </section>
+
+    <section class="slide">
+      <div class="chrome"><span>FOUNDER EVIDENCE</span><span>02 / 06</span></div>
+      <div><div class="eyebrow">热爱与擅长</div><h2 class="title-lg">技术、产品与创作交汇</h2></div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="hair body" style="font-size:clamp(18px,1.55vw,28px)">软件工程，本科<br>人工智能，研究生<br>做过产品</div>
+          <div class="posters">
+            <div><div class="card"><img class="contain" src="assets/poster-xujing.png" alt="叙境产品海报"></div><div class="cap">Product proof / Xujing</div></div>
+            <div><div class="card"><img class="contain" src="assets/poster-daying.png" alt="搭映产品海报"></div><div class="cap">Product proof / Daying</div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div><div class="eyebrow">Creator side</div><h2 class="title-lg" style="font-size:min(4.4vw,7.6vh)">我自己就在运营内容</h2></div>
+          <div class="wall-3">
+            <div><div class="card"><img src="assets/douyin.jpg" alt="抖音运营截图"></div><div class="cap">Douyin</div></div>
+            <div><div class="card"><img src="assets/xiaohongshu.jpg" alt="小红书运营截图"></div><div class="cap">Xiaohongshu</div></div>
+            <div><div class="card"><img src="assets/x.jpg" alt="X 运营截图"></div><div class="cap">X</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="chrome"><span>Builder and user are the same person</span><span></span></div>
+    </section>
+
+    <section class="slide soft">
+      <div class="chrome"><span>DEMAND VALIDATION</span><span>03 / 06</span></div>
+      <div><div class="eyebrow">这是创作者的真需求</div><h2 class="title-lg">样本质量、真实反馈、结论强度</h2></div>
+      <div class="grid-3">
+        <div class="stats">
+          <div class="stat"><div class="num">9</div><span>位创作者调研</span></div>
+          <div class="stat"><div class="num">8</div><span>位明确有需求</span></div>
+          <div class="stat"><div class="num">1</div><span>位已有自建工作流</span></div>
+        </div>
+        <div class="panel">
+          <div class="eyebrow">Authority sample wall</div>
+          <div class="samples">
+            <div class="card"><img class="contain" src="assets/fans-linote.png" alt="Linote 粉丝截图"></div>
+            <div class="card"><img class="contain" src="assets/fans-nini.png" alt="nini 粉丝截图"></div>
+            <div class="card"><img class="contain" src="assets/fans-russell.png" alt="Russell 粉丝截图"></div>
+            <div class="card"><img class="contain" src="assets/fans-yuvi.png" alt="Yuvi 粉丝截图"></div>
+            <div class="card"><img class="contain" src="assets/fans-xiaoshui.png" alt="小水同学粉丝截图"></div>
+            <div class="card"><img class="contain" src="assets/fans-defou.png" alt="得否粉丝截图"></div>
+            <div class="card"><img class="contain" src="assets/fans-bainian.png" alt="百年粉丝截图"></div>
+            <div class="card"><img class="contain" src="assets/fans-woniu.png" alt="蜗牛粉丝截图"></div>
+            <div class="card"><img class="contain" src="assets/fans-xichu.png" alt="西楚粉丝截图"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="eyebrow">Real conversation wall</div>
+          <div class="chats">
+            <div class="card"><img src="assets/chat-linote.png" alt="Linote 微信交流"></div>
+            <div class="card"><img src="assets/chat-nini.png" alt="nini 微信交流"></div>
+            <div class="card"><img src="assets/chat-russell.png" alt="Russell 微信交流"></div>
+            <div class="card"><img src="assets/chat-yuvi.png" alt="Yuvi 微信交流"></div>
+            <div class="card"><img src="assets/chat-xiaoshui.png" alt="小水同学 微信交流"></div>
+            <div class="card"><img src="assets/chat-defou.png" alt="得否 微信交流"></div>
+            <div class="card"><img src="assets/chat-bainian.png" alt="百年 微信交流"></div>
+            <div class="card"><img src="assets/chat-woniu.png" alt="蜗牛 微信交流"></div>
+            <div class="card"><img src="assets/chat-xichu.png" alt="西楚 微信交流"></div>
+          </div>
+        </div>
+      </div>
+      <div class="chrome"><span>Sample quality + conversation proof + decision signal</span><span></span></div>
+    </section>
+
+    <section class="slide dark" data-kind="dark">
+      <div class="chrome"><span>PAIN AND COMPETITION</span><span>04 / 06</span></div>
+      <div><div class="eyebrow">多平台分发是趋势，但改写仍然很痛</div><h2 class="title-lg">创作者需要的不是又一个聊天框</h2></div>
+      <div class="grid-2">
+        <div class="pain">
+          <div class="pain-item"><div class="pain-no">01</div><div class="pain-text">一篇内容要适配 X、小红书、公众号、抖音等平台。</div></div>
+          <div class="pain-item"><div class="pain-no">02</div><div class="pain-text">不同平台的语气、长度、结构和标题逻辑都不同。</div></div>
+          <div class="pain-item"><div class="pain-no">03</div><div class="pain-text">创作者通常没有时间维护完整人设和平台风格。</div></div>
+        </div>
+        <div class="competitor">
+          <div class="card"><img class="contain" src="assets/competitor.png" alt="竞品展示"></div>
+          <div class="tags"><div class="tag">AI 味重</div><div class="tag">不可直接发布</div><div class="tag">缺少个人风格</div><div class="tag">平台适配弱</div></div>
+        </div>
+      </div>
+      <div class="chrome"><span>Counter evidence is stronger than generic market sizing</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="chrome"><span>OPPORTUNITY</span><span>05 / 06</span></div>
+      <div><div class="eyebrow">为什么这是创业机会</div><h2 class="title-lg">这不是一次性工具，而是可持续工作流</h2></div>
+      <div class="oppo">
+        <div class="radar"><div class="axis v"></div><div class="axis h"></div><div class="core">FLOW</div><div class="rlabel l1">高频</div><div class="rlabel l2">明确用户</div><div class="rlabel l3">更高效</div><div class="rlabel l4">有付费能力</div><div class="rlabel l5">可衡量</div></div>
+        <div class="reasons body">
+          <div class="reason"><strong>高频</strong><span>只要持续创作，就持续需要内容沉淀和转写。</span></div>
+          <div class="reason"><strong>明确用户</strong><span>有跨平台增长需求的创作者。</span></div>
+          <div class="reason"><strong>更高效</strong><span>替代手动改写、整理人设、重复适配。</span></div>
+          <div class="reason"><strong>有付费能力</strong><span>相比几千元人力，一个月一两百的 AI 工具更轻。</span></div>
+          <div class="reason"><strong>可衡量</strong><span>结果能被创作者主观判断，也能被平台数据反馈。</span></div>
+        </div>
+      </div>
+      <div class="chrome"><span>Workflow, not prompt utility</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="chrome"><span>CONVERSION</span><span>06 / 06</span></div>
+      <div></div>
+      <div class="qr">
+        <div><div class="eyebrow">欢迎体验 Flowcast</div><h2 class="title-lg">让下一篇内容，直接开始流转</h2><p class="body" style="margin-top:3vh;max-width:34ch">现场扫码，加入体验群或直接联系我。产品仍在早期，但需求已经被真实创作者验证。</p></div>
+        <div class="qr-grid">
+          <div class="qr-card"><img src="assets/qr-founder.jpg" alt="个人微信二维码"><h3>个人微信</h3><div class="cap">Founder contact</div></div>
+          <div class="qr-card"><img src="assets/qr-group.jpg" alt="产品体验群二维码"><h3>产品体验群</h3><div class="cap">Flowcast beta group</div></div>
+        </div>
+      </div>
+      <div class="chrome"><span>Thank you</span><span>FLOWCAST</span></div>
+    </section>
+  </main>
+  <div class="nav"><span id="page">01 / 06</span><div class="dots" id="dots"></div><span>← → 翻页 / ESC 索引</span></div>
+  <script>
+    const slides=[...document.querySelectorAll(".slide")],deck=document.getElementById("deck"),dots=document.getElementById("dots"),page=document.getElementById("page");let i=0;
+    slides.forEach((s,n)=>{const b=document.createElement("button");b.className="dot";b.type="button";b.onclick=()=>go(n);dots.appendChild(b);s.onclick=()=>{if(document.body.classList.contains("overview"))go(n)}});
+    function go(n){i=Math.max(0,Math.min(slides.length-1,n));document.body.classList.remove("overview");deck.style.setProperty("--i",i);page.textContent=`${String(i+1).padStart(2,"0")} / ${String(slides.length).padStart(2,"0")}`;document.querySelectorAll(".dot").forEach((d,n)=>d.classList.toggle("active",n===i));document.body.classList.toggle("on-dark",slides[i].dataset.kind==="dark")}
+    addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="PageDown"||e.key===" ")go(i+1);if(e.key==="ArrowLeft"||e.key==="PageUp")go(i-1);if(e.key==="Home")go(0);if(e.key==="End")go(slides.length-1);if(e.key==="Escape")document.body.classList.toggle("overview")});
+    let x=null;addEventListener("touchstart",e=>x=e.changedTouches[0].clientX,{passive:true});addEventListener("touchend",e=>{if(x===null)return;const d=e.changedTouches[0].clientX-x;if(Math.abs(d)>48)go(i+(d<0?1:-1));x=null},{passive:true});
+    const initial=Math.max(1,Math.min(slides.length,Number(new URLSearchParams(location.search).get("slide"))||1));go(initial-1);
+  </script>
+</body>
+</html>

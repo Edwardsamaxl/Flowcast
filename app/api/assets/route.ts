@@ -53,7 +53,6 @@ async function seedMockDataIfEmpty() {
       creatorId,
       type: "video",
       title: "普通人考研最容易高估自己的执行力",
-      source: "直播回放",
       duration: "42:18",
       status: "analyzed",
       transcript: `今天聊一个很多考研同学都会踩的坑：高估自己的执行力。\n\n我见过太多同学做计划，把一天排得满满当当：早上六点起床背单词，上午刷数学，下午专业课，晚上英语真题，睡前还要复盘。这个计划看起来特别漂亮，但问题是——它是按你最理想的状态设计的。\n\n你默认自己每天都精神很好、时间完整、没有临时任务、不会累。但备考不是在理想状态里发生的。\n\n你真正要做的不是把计划排满，而是先设计一个"最差状态也能完成"的版本。比如今天只能学90分钟，那这90分钟里最不能丢的是什么？先把它保住。\n\n我一直在强调一个观点：计划能落地，比计划看起来厉害重要得多。稳定执行优先于极限方法。`,
@@ -76,7 +75,6 @@ async function seedMockDataIfEmpty() {
       creatorId,
       type: "video",
       title: "为什么资料越多，越容易不开始",
-      source: "课程录屏",
       duration: "31:04",
       status: "analyzed",
       transcript: `你有没有过这种经历：想考研，先花三天搜集所有经验帖、资料包、网盘链接。搜集完觉得差不多了，但又看到一个帖子说"这几本书必看"，于是又去下载。反复几次之后，你已经花了一周在搜集资料上，但一页书都没翻开。\n\n这不是执行力的问题，这是用"搜集资料"来替代"真正开始"。\n\n资料不是安全感，完成一轮最小闭环才是安全感。你不需要把所有可能的资料都准备好再开始。你需要的是：先拿起一本最核心的书，看完第一章，做对应的题，发现哪里不会，再去针对性地找资料。`,
@@ -98,7 +96,6 @@ async function seedMockDataIfEmpty() {
       creatorId: null,
       type: "video",
       title: "职场新人不要把复盘写成检讨书",
-      source: "短视频口播",
       duration: "06:47",
       status: "analyzed",
       transcript: `复盘是职场里最容易做错的一件事。很多人把复盘写成了检讨书——"我哪里做得不好，我为什么没做好，我下次一定改"。这根本不是复盘，这是自我攻击。\n\n真正的复盘只回答三个问题：第一，预期和实际之间哪里出现了偏差？第二，这个偏差的根本原因是什么——是信息不充分、判断失误、还是执行问题？第三，下一次在哪个节点可以提前发现这个偏差？\n\n复盘不是证明你有多努力，也不是承认你多失败。它是一个定位系统。`,
@@ -189,7 +186,7 @@ export async function POST(req: NextRequest) {
   const file = formData.get("file") as File | null;
   const type = (formData.get("type") as string) || "video";
   const title = (formData.get("title") as string) || file?.name || "未命名素材";
-  const source = (formData.get("source") as string) || "";
+  const creatorId = (formData.get("creatorId") as string) || null;
 
   if (!file) return jsonError("缺少文件", 400);
 
@@ -207,8 +204,8 @@ export async function POST(req: NextRequest) {
     id: assetId,
     type,
     title,
-    source,
     filePath,
+    creatorId,
     status: "uploaded",
     createdAt: now(),
     updatedAt: now(),

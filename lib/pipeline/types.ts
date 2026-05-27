@@ -49,12 +49,8 @@ export type CreatorProfile = {
 export type VoiceProfile = CreatorProfile;
 
 export type CreatorProfileSuggestions = {
-  positioning_suggestions: string[];
-  tone_suggestions: string[];
-  belief_suggestions: string[];
-  case_suggestions: string[];
-  common_pattern_suggestions: string[];
-  avoid_phrase_suggestions: string[];
+  additions: Array<{ field: string; value: string }>;
+  modifications: Array<{ field: string; from: string; to: string }>;
   evidence_segments: string[];
 };
 

@@ -53,36 +53,72 @@ export async function POST(
       .where(eq(creatorProfiles.creatorId, id));
 
     if (profile) {
-      const suggData = parseJsonField<Record<string, string[]>>(suggestion.suggestions, {});
+      const suggData = parseJsonField<{
+        additions?: Array<{ field: string; value: string }>;
+        modifications?: Array<{ field: string; from: string; to: string }>;
+      }>(suggestion.suggestions, {});
 
       const currentTone = parseJsonField<string[]>(profile.tone, []);
       const currentBeliefs = parseJsonField<string[]>(profile.beliefs, []);
       const currentCases = parseJsonField<string[]>(profile.cases, []);
       const currentPatterns = parseJsonField<string[]>(profile.commonPatterns, []);
       const currentAvoid = parseJsonField<string[]>(profile.avoidPhrases, []);
+      let currentPositioning = profile.positioning;
 
-      const fields = body.applyFields || ["tone", "beliefs", "cases", "patterns", "avoid"];
+      const additions = suggData.additions || [];
+      const modifications = suggData.modifications || [];
 
-      if (fields.includes("tone") && suggData.tone_suggestions?.length) {
-        const merged = Array.from(new Set([...currentTone, ...suggData.tone_suggestions]));
-        await db.update(creatorProfiles).set({ tone: JSON.stringify(merged), updatedAt: now() }).where(eq(creatorProfiles.creatorId, id));
+      // Apply modifications first
+      for (const mod of modifications) {
+        const field = mod.field;
+        if (field === "定位") currentPositioning = mod.to;
+        if (field === "语气") {
+          const idx = currentTone.indexOf(mod.from);
+          if (idx >= 0) currentTone[idx] = mod.to;
+          else currentTone.push(mod.to);
+        }
+        if (field === "高频观点") {
+          const idx = currentBeliefs.indexOf(mod.from);
+          if (idx >= 0) currentBeliefs[idx] = mod.to;
+          else currentBeliefs.push(mod.to);
+        }
+        if (field === "常用案例") {
+          const idx = currentCases.indexOf(mod.from);
+          if (idx >= 0) currentCases[idx] = mod.to;
+          else currentCases.push(mod.to);
+        }
+        if (field === "常用结构") {
+          const idx = currentPatterns.indexOf(mod.from);
+          if (idx >= 0) currentPatterns[idx] = mod.to;
+          else currentPatterns.push(mod.to);
+        }
+        if (field === "禁用表达") {
+          const idx = currentAvoid.indexOf(mod.from);
+          if (idx >= 0) currentAvoid[idx] = mod.to;
+          else currentAvoid.push(mod.to);
+        }
       }
-      if (fields.includes("beliefs") && suggData.belief_suggestions?.length) {
-        const merged = Array.from(new Set([...currentBeliefs, ...suggData.belief_suggestions]));
-        await db.update(creatorProfiles).set({ beliefs: JSON.stringify(merged), updatedAt: now() }).where(eq(creatorProfiles.creatorId, id));
+
+      // Apply additions
+      for (const add of additions) {
+        const field = add.field;
+        if (field === "定位" && !currentPositioning) currentPositioning = add.value;
+        if (field === "语气" && !currentTone.includes(add.value)) currentTone.push(add.value);
+        if (field === "高频观点" && !currentBeliefs.includes(add.value)) currentBeliefs.push(add.value);
+        if (field === "常用案例" && !currentCases.includes(add.value)) currentCases.push(add.value);
+        if (field === "常用结构" && !currentPatterns.includes(add.value)) currentPatterns.push(add.value);
+        if (field === "禁用表达" && !currentAvoid.includes(add.value)) currentAvoid.push(add.value);
       }
-      if (fields.includes("cases") && suggData.case_suggestions?.length) {
-        const merged = Array.from(new Set([...currentCases, ...suggData.case_suggestions]));
-        await db.update(creatorProfiles).set({ cases: JSON.stringify(merged), updatedAt: now() }).where(eq(creatorProfiles.creatorId, id));
-      }
-      if (fields.includes("patterns") && suggData.common_pattern_suggestions?.length) {
-        const merged = Array.from(new Set([...currentPatterns, ...suggData.common_pattern_suggestions]));
-        await db.update(creatorProfiles).set({ commonPatterns: JSON.stringify(merged), updatedAt: now() }).where(eq(creatorProfiles.creatorId, id));
-      }
-      if (fields.includes("avoid") && suggData.avoid_phrase_suggestions?.length) {
-        const merged = Array.from(new Set([...currentAvoid, ...suggData.avoid_phrase_suggestions]));
-        await db.update(creatorProfiles).set({ avoidPhrases: JSON.stringify(merged), updatedAt: now() }).where(eq(creatorProfiles.creatorId, id));
-      }
+
+      await db.update(creatorProfiles).set({
+        positioning: currentPositioning,
+        tone: JSON.stringify(currentTone),
+        beliefs: JSON.stringify(currentBeliefs),
+        cases: JSON.stringify(currentCases),
+        commonPatterns: JSON.stringify(currentPatterns),
+        avoidPhrases: JSON.stringify(currentAvoid),
+        updatedAt: now(),
+      }).where(eq(creatorProfiles.creatorId, id));
     }
 
     await db.update(profileSuggestions).set({ status: "applied", updatedAt: now() }).where(eq(profileSuggestions.id, body.suggestionId));
