@@ -8,7 +8,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  ensureMigrations();
+  await ensureMigrations();
   const { id } = await params;
   const db = await getDb();
 
@@ -18,7 +18,7 @@ export async function POST(
   const body = await req.json() as {
     tags?: string[];
     message?: string;
-    scope?: "current_draft" | "voice_profile";
+    scope?: "current_draft" | "creator_profile" | "voice_profile";
     draftId?: string;
   };
 

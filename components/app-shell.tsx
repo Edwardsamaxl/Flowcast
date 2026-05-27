@@ -57,7 +57,7 @@ export function AppShell({
 
         <div className="absolute inset-x-4 bottom-5 border-t border-paper-200 pt-4">
           <p className="text-xs leading-5 text-ink-600">
-            视频只会在用户确认后写入人物画像。拆解内容默认只影响当前稿件。
+            视频只会在用户确认后写入创作者画像。拆解内容默认只影响当前稿件。
           </p>
         </div>
       </aside>

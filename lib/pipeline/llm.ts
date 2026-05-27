@@ -3,14 +3,14 @@ import {
   buildPlatformRewritePrompt,
   buildTranscriptAnalysisPrompt,
   buildVoiceAlignedRewritePrompt,
-  buildVoiceProfileSuggestionPrompt
+  buildCreatorProfileSuggestionPrompt
 } from "@/lib/pipeline/prompts";
 import type {
   GeneratedPlatformDraft,
   Platform,
   TranscriptAnalysis,
-  VoiceProfile,
-  VoiceProfileSuggestions
+  CreatorProfile,
+  CreatorProfileSuggestions
 } from "@/lib/pipeline/types";
 
 function parseJsonResponse<T>(content: string): T {
@@ -46,10 +46,10 @@ export async function analyzeTranscript(transcript: string): Promise<TranscriptA
   return parseJsonResponse<TranscriptAnalysis>(content);
 }
 
-export async function suggestVoiceProfileUpdates(params: {
+export async function suggestCreatorProfileUpdates(params: {
   transcript: string;
-  currentProfile?: VoiceProfile;
-}): Promise<VoiceProfileSuggestions> {
+  currentProfile?: CreatorProfile;
+}): Promise<CreatorProfileSuggestions> {
   const content = await callDeepSeekChat({
     responseFormat: "json_object",
     temperature: 0.2,
@@ -60,19 +60,23 @@ export async function suggestVoiceProfileUpdates(params: {
       },
       {
         role: "user",
-        content: buildVoiceProfileSuggestionPrompt(params.transcript, params.currentProfile)
+        content: buildCreatorProfileSuggestionPrompt(params.transcript, params.currentProfile)
       }
     ]
   });
 
-  return parseJsonResponse<VoiceProfileSuggestions>(content);
+  return parseJsonResponse<CreatorProfileSuggestions>(content);
 }
+
+/** @deprecated Use suggestCreatorProfileUpdates */
+export const suggestVoiceProfileUpdates = suggestCreatorProfileUpdates;
 
 export async function generatePlatformDraft(params: {
   transcript: string;
   analysis: TranscriptAnalysis;
   platform: Platform;
-  voiceProfile?: VoiceProfile;
+  voiceProfile?: CreatorProfile;
+  feedback?: string[];
 }): Promise<GeneratedPlatformDraft> {
   const content = await callDeepSeekChat({
     responseFormat: "json_object",
@@ -96,7 +100,7 @@ export async function generateVoiceAlignedDraft(params: {
   transcript: string;
   analysis: TranscriptAnalysis;
   platform: Platform;
-  voiceProfile?: VoiceProfile;
+  voiceProfile?: CreatorProfile;
 }): Promise<GeneratedPlatformDraft> {
   const content = await callDeepSeekChat({
     responseFormat: "json_object",

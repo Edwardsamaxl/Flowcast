@@ -1,54 +1,48 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   Copy, RefreshCcw, UploadCloud, ArrowRight, Check,
   Trash2, MessageSquareText, Loader2, Pencil, X,
+  FileText,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { SectionTitle } from "@/components/ui";
-import { personas, platformOptions, feedbackTagOptions, generatedDraft } from "@/lib/data";
+import { platformOptions, feedbackTagOptions } from "@/lib/data";
+import { useCreators } from "@/lib/hooks/use-creators";
+import type { Asset } from "@/lib/hooks/use-assets";
+import type { Task, Draft } from "@/lib/hooks/use-tasks";
 
-type WorkMode = "transcript" | "profile" | "drafts";
+type WorkModule = "content" | "profile" | "drafts";
 
-type ProfileAddition = { field: string; value: string };
-type ProfileModification = { field: string; from: string; to: string };
+type ProfileAddition = { field: string; value: string; accepted?: boolean };
+type ProfileModification = { field: string; from: string; to: string; accepted?: boolean };
 
 export default function CreatePage() {
-  // ---- Upload state ----
-  const [uploadedAsset, setUploadedAsset] = useState<{
-    id: string; title: string; status: string;
-  } | null>(null);
-  const [transcriptText, setTranscriptText] = useState("");
+  const { creators } = useCreators();
+
+  // ---- Upload & processing state ----
+  const [asset, setAsset] = useState<Asset | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processError, setProcessError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ---- Task state ----
+  const [taskId, setTaskId] = useState<string | null>(null);
+  const [task, setTask] = useState<Task | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
   // ---- Config ----
-  const [selectedPersonaId, setSelectedPersonaId] = useState("");
+  const [selectedCreatorId, setSelectedCreatorId] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState("xiaohongshu");
 
-  // ---- Work mode ----
-  const [mode, setMode] = useState<WorkMode>("transcript");
+  // ---- Work module ----
+  const [module, setModule] = useState<WorkModule>("content");
 
-  // ---- Drafts state ----
-  const [draftContent, setDraftContent] = useState(generatedDraft.body);
-  const [draftsSaved, setDraftsSaved] = useState(false);
-
-  // ---- Profile changes ----
-  const [profileChanges, setProfileChanges] = useState<{
-    additions: ProfileAddition[];
-    modifications: ProfileModification[];
-  }>({
-    additions: [
-      { field: "高频观点", value: "稳定执行优先于极限方法" },
-      { field: "常用案例", value: "低状态学习日" },
-      { field: "常用结构", value: "先承认问题普遍性，再给具体方法" },
-    ],
-    modifications: [
-      { field: "语气特征", from: "有经验感", to: "更有经验感，增加具体数据支撑" },
-    ],
-  });
+  // ---- Profile changes (initialized from analysis, then managed locally) ----
+  const [localAdditions, setLocalAdditions] = useState<ProfileAddition[]>([]);
+  const [localModifications, setLocalModifications] = useState<ProfileModification[]>([]);
 
   // ---- Editing state for profile items ----
   const [editingAdditionIdx, setEditingAdditionIdx] = useState<number | null>(null);
@@ -56,41 +50,163 @@ export default function CreatePage() {
   const [editingModificationIdx, setEditingModificationIdx] = useState<number | null>(null);
   const [editingModTo, setEditingModTo] = useState("");
 
-  // ---- Transcript feedback ----
-  const [transcriptFeedbackText, setTranscriptFeedbackText] = useState("");
-  const [transcriptFeedbackTags, setTranscriptFeedbackTags] = useState<Set<string>>(new Set());
-  const [transcriptFeedbackHistory, setTranscriptFeedbackHistory] = useState<Array<{ text: string; tags: string[]; time: string }>>([]);
-
-  // ---- Profile feedback ----
+  // ---- Feedback state ----
+  const [contentFeedbackText, setContentFeedbackText] = useState("");
+  const [contentFeedbackTags, setContentFeedbackTags] = useState<Set<string>>(new Set());
   const [profileFeedbackText, setProfileFeedbackText] = useState("");
   const [profileFeedbackTags, setProfileFeedbackTags] = useState<Set<string>>(new Set());
-  const [profileFeedbackHistory, setProfileFeedbackHistory] = useState<Array<{ text: string; tags: string[]; time: string }>>([]);
+
+  // ---- Draft editing ----
+  const [draftEdits, setDraftEdits] = useState<Record<string, string>>({});
+  const [draftSaved, setDraftSaved] = useState(false);
+
+  // ---- All drafts accumulator (across platforms for this asset) ----
+  const [allDrafts, setAllDrafts] = useState<Draft[]>([]);
+
+  // Load task or asset from URL on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const taskParam = params.get("task");
+    const assetParam = params.get("assetId") || params.get("asset");
+    if (taskParam) {
+      setTaskId(taskParam);
+    } else if (assetParam) {
+      fetch(`/api/assets/${assetParam}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("素材不存在或已删除");
+          return res.json();
+        })
+        .then((data: Asset) => {
+          setAsset(data);
+          if (data.creatorId) setSelectedCreatorId(data.creatorId);
+          setModule("content");
+        })
+        .catch((err) => {
+          setProcessError(err instanceof Error ? err.message : "加载素材失败");
+        });
+    }
+  }, []);
+
+  // Initialize profile additions from LLM profile suggestion, falling back to analysis extraction
+  useEffect(() => {
+    if (localAdditions.length > 0 || localModifications.length > 0) return;
+
+    const profileSuggestion = task?.asset?.profileSuggestion || asset?.profileSuggestion;
+    if (profileSuggestion?.suggestions) {
+      const sugg = profileSuggestion.suggestions;
+      const additions: ProfileAddition[] = [];
+      const pushSuggestions = (field: string, items?: string[]) => {
+        if (!items) return;
+        items.forEach((v) => { if (v.trim()) additions.push({ field, value: v.trim() }); });
+      };
+      pushSuggestions("定位", sugg.positioning_suggestions);
+      pushSuggestions("语气", sugg.tone_suggestions);
+      pushSuggestions("高频观点", sugg.belief_suggestions);
+      pushSuggestions("常用案例", sugg.case_suggestions);
+      pushSuggestions("常用结构", sugg.common_pattern_suggestions);
+      pushSuggestions("禁用表达", sugg.avoid_phrase_suggestions);
+      setLocalAdditions(additions);
+      return;
+    }
+
+    const analysis = task?.asset?.analysis || asset?.analysis;
+    if (!analysis) return;
+
+    const additions: ProfileAddition[] = [];
+    if (analysis.corePoints && Array.isArray(analysis.corePoints)) {
+      analysis.corePoints.forEach((cp: unknown, i: number) => {
+        const point = cp as { point?: string };
+        if (i < 3 && point.point) additions.push({ field: "高频观点", value: point.point });
+      });
+    }
+    if (analysis.cases && Array.isArray(analysis.cases)) {
+      analysis.cases.forEach((c: string, i: number) => {
+        if (i < 2) additions.push({ field: "常用案例", value: c });
+      });
+    }
+    setLocalAdditions(additions);
+  }, [task?.asset?.profileSuggestion, asset?.profileSuggestion, task?.asset?.analysis, asset?.analysis]);
+
+  // Poll task status when generating
+  useEffect(() => {
+    if (!taskId) {
+      setTask(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchTask = async () => {
+      try {
+        const res = await fetch(`/api/tasks/${taskId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setTask(data);
+        return data as Task;
+      } catch {
+        return null;
+      }
+    };
+
+    fetchTask();
+
+    const interval = setInterval(async () => {
+      await fetchTask();
+    }, 3000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [taskId]);
+
+  // Merge task drafts into allDrafts
+  useEffect(() => {
+    if (!task?.drafts) return;
+    setAllDrafts((prev) => {
+      const map = new Map<string, Draft>();
+      prev.forEach((d) => map.set(d.id, d));
+      task.drafts!.forEach((d) => map.set(d.id, d));
+      return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+    });
+  }, [task?.drafts]);
 
   // ---- Upload handler ----
   const handleUpload = useCallback(async (file: File) => {
     setIsUploading(true);
+    setProcessError(null);
+    setAsset(null);
+    setTaskId(null);
+    setTask(null);
+    setAllDrafts([]);
+    setLocalAdditions([]);
+    setLocalModifications([]);
+    setDraftEdits({});
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", "video");
       formData.append("title", file.name);
       const res = await fetch("/api/assets", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
-      const asset = await res.json();
-      setUploadedAsset({ id: asset.id, title: asset.title, status: "uploaded" });
+      if (!res.ok) throw new Error("上传失败");
+      const uploaded = (await res.json()) as Asset;
+      setAsset(uploaded);
 
-      // Mock transcription
-      setIsTranscribing(true);
-      await new Promise((r) => setTimeout(r, 1200));
-      setTranscriptText(
-        `今天聊一个很多考研同学都会踩的坑：高估自己的执行力。\n\n我见过太多同学做计划，把一天排得满满当当：早上六点起床背单词，上午刷数学，下午专业课，晚上英语真题，睡前还要复盘。这个计划看起来特别漂亮，但问题是——它是按你最理想的状态设计的。\n\n你默认自己每天都精神很好、时间完整、没有临时任务、不会累。但备考不是在理想状态里发生的。\n\n你真正要做的不是把计划排满，而是先设计一个"最差状态也能完成"的版本。比如今天只能学90分钟，那这90分钟里最不能丢的是什么？先把它保住。\n\n我一直在强调一个观点：计划能落地，比计划看起来厉害重要得多。稳定执行优先于极限方法。`
-      );
-      setIsTranscribing(false);
-      setMode("transcript");
+      setIsProcessing(true);
+      const processRes = await fetch(`/api/assets/${uploaded.id}`, { method: "POST" });
+      if (!processRes.ok) {
+        const err = await processRes.json() as { error?: string };
+        throw new Error(err.error || "解析失败");
+      }
+      const processed = (await processRes.json()) as Asset;
+      setAsset(processed);
+      setModule("content");
     } catch (err) {
-      console.error("Upload error:", err);
+      setProcessError(err instanceof Error ? err.message : "未知错误");
     } finally {
       setIsUploading(false);
+      setIsProcessing(false);
     }
   }, []);
 
@@ -105,135 +221,213 @@ export default function CreatePage() {
     if (file) handleUpload(file);
   }, [handleUpload]);
 
-  // ---- Transcript feedback (triggers re-transcription) ----
-  const submitTranscriptFeedback = () => {
-    if (!transcriptFeedbackText.trim() && transcriptFeedbackTags.size === 0) return;
-    const fb = {
-      text: transcriptFeedbackText,
-      tags: Array.from(transcriptFeedbackTags),
-      time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-    };
-    setTranscriptFeedbackHistory((prev) => [...prev, fb]);
-    setTranscriptFeedbackText("");
-    setTranscriptFeedbackTags(new Set());
+  // ---- Generate / Regenerate handler ----
+  const handleGenerate = useCallback(async () => {
+    if (!asset || !selectedPlatform) return;
+    setIsGenerating(true);
+    setProcessError(null);
+    try {
+      const taskRes = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assetId: asset.id,
+          creatorId: selectedCreatorId || undefined,
+          title: asset.title,
+          platforms: [selectedPlatform],
+        }),
+      });
+      if (!taskRes.ok) throw new Error("创建任务失败");
+      const { taskId: newTaskId } = await taskRes.json() as { taskId: string };
+      setTaskId(newTaskId);
 
-    // Mock LLM re-transcription based on feedback
-    setIsTranscribing(true);
-    setTimeout(() => {
-      const tagFeedback = fb.tags.join("、");
-      const allFeedback = [fb.text, tagFeedback].filter(Boolean).join("；");
-      setTranscriptText((prev) =>
-        prev +
-        `\n\n---\n[根据反馈「${allFeedback}」重新转写]\n\n` +
-        `（此处为 LLM 根据反馈重新转写后的内容。原始转写已根据「${allFeedback}」进行调整。）\n\n` +
-        prev
-          .split("\n")
-          .slice(0, 3)
-          .map((line) => line.replace(/高估/g, "重新评估").replace(/执行力/g, "执行节奏"))
-          .join("\n")
-      );
-      setIsTranscribing(false);
-    }, 1500);
-  };
+      const genRes = await fetch(`/api/tasks/${newTaskId}/generate`, { method: "POST" });
+      if (!genRes.ok) {
+        const err = await genRes.json() as { error?: string };
+        throw new Error(err.error || "生成失败");
+      }
 
-  const toggleTranscriptFeedbackTag = (tag: string) => {
-    setTranscriptFeedbackTags((prev) => {
-      const next = new Set(prev);
-      if (next.has(tag)) next.delete(tag);
-      else next.add(tag);
-      return next;
-    });
-  };
+      const taskRes2 = await fetch(`/api/tasks/${newTaskId}`);
+      if (taskRes2.ok) setTask(await taskRes2.json() as Task);
+    } catch (err) {
+      setProcessError(err instanceof Error ? err.message : "生成失败");
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [asset, selectedCreatorId, selectedPlatform]);
 
-  // ---- Profile item actions ----
+  const handleRegenerate = useCallback(async () => {
+    if (!taskId) return;
+    setIsGenerating(true);
+    setProcessError(null);
+    try {
+      const genRes = await fetch(`/api/tasks/${taskId}/generate`, { method: "POST" });
+      if (!genRes.ok) {
+        const err = await genRes.json() as { error?: string };
+        throw new Error(err.error || "重新生成失败");
+      }
+      const taskRes = await fetch(`/api/tasks/${taskId}`);
+      if (taskRes.ok) setTask(await taskRes.json() as Task);
+    } catch (err) {
+      setProcessError(err instanceof Error ? err.message : "重新生成失败");
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [taskId]);
+
+  // ---- Profile actions ----
   const acceptAddition = (i: number) => {
-    setProfileChanges((prev) => ({
-      ...prev,
-      additions: prev.additions.filter((_, idx) => idx !== i),
-    }));
+    setLocalAdditions((prev) =>
+      prev.map((item, idx) => (idx === i ? { ...item, accepted: true } : item))
+    );
   };
 
   const deleteAddition = (i: number) => {
-    setProfileChanges((prev) => ({
-      ...prev,
-      additions: prev.additions.filter((_, idx) => idx !== i),
-    }));
+    setLocalAdditions((prev) => prev.filter((_, idx) => idx !== i));
   };
 
   const startEditAddition = (i: number) => {
     setEditingAdditionIdx(i);
-    setEditingAdditionValue(profileChanges.additions[i].value);
+    setEditingAdditionValue(localAdditions[i].value);
   };
 
   const saveEditAddition = () => {
     if (editingAdditionIdx === null) return;
-    setProfileChanges((prev) => ({
-      ...prev,
-      additions: prev.additions.map((item, idx) =>
-        idx === editingAdditionIdx ? { ...item, value: editingAdditionValue } : item
-      ),
-    }));
+    setLocalAdditions((prev) =>
+      prev.map((item, idx) => (idx === editingAdditionIdx ? { ...item, value: editingAdditionValue } : item))
+    );
     setEditingAdditionIdx(null);
     setEditingAdditionValue("");
   };
 
   const acceptModification = (i: number) => {
-    setProfileChanges((prev) => ({
-      ...prev,
-      modifications: prev.modifications.filter((_, idx) => idx !== i),
-    }));
+    setLocalModifications((prev) =>
+      prev.map((item, idx) => (idx === i ? { ...item, accepted: true } : item))
+    );
   };
 
   const deleteModification = (i: number) => {
-    setProfileChanges((prev) => ({
-      ...prev,
-      modifications: prev.modifications.filter((_, idx) => idx !== i),
-    }));
+    setLocalModifications((prev) => prev.filter((_, idx) => idx !== i));
   };
 
   const startEditModification = (i: number) => {
     setEditingModificationIdx(i);
-    setEditingModTo(profileChanges.modifications[i].to);
+    setEditingModTo(localModifications[i].to);
   };
 
   const saveEditModification = () => {
     if (editingModificationIdx === null) return;
-    setProfileChanges((prev) => ({
-      ...prev,
-      modifications: prev.modifications.map((item, idx) =>
-        idx === editingModificationIdx ? { ...item, to: editingModTo } : item
-      ),
-    }));
+    setLocalModifications((prev) =>
+      prev.map((item, idx) => (idx === editingModificationIdx ? { ...item, to: editingModTo } : item))
+    );
     setEditingModificationIdx(null);
     setEditingModTo("");
   };
 
-  // ---- Profile feedback (triggers LLM to re-generate profile suggestions) ----
-  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const handleConfirmProfile = async () => {
+    if (!selectedCreatorId) return;
+    const toApplyAdditions = localAdditions.filter((a) => a.accepted);
+    const toApplyModifications = localModifications.filter((m) => m.accepted);
 
-  const submitProfileFeedback = () => {
-    if (!profileFeedbackText.trim() && profileFeedbackTags.size === 0) return;
-    const fb = {
-      text: profileFeedbackText,
-      tags: Array.from(profileFeedbackTags),
-      time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-    };
-    setProfileFeedbackHistory((prev) => [...prev, fb]);
-    setProfileFeedbackText("");
-    setProfileFeedbackTags(new Set());
+    const beliefs: string[] = [];
+    const cases: string[] = [];
+    const commonPatterns: string[] = [];
+    const tone: string[] = [];
+    const avoidPhrases: string[] = [];
 
-    // Mock LLM updating profile suggestions
-    setIsUpdatingProfile(true);
-    setTimeout(() => {
-      setProfileChanges((prev) => ({
-        additions: [
-          ...prev.additions,
-          { field: "语气特征", value: `根据反馈调整：${fb.text || fb.tags.join("、")}` },
-        ],
-        modifications: prev.modifications,
-      }));
-      setIsUpdatingProfile(false);
-    }, 1500);
+    toApplyAdditions.forEach((a) => {
+      if (a.field === "高频观点") beliefs.push(a.value);
+      if (a.field === "常用案例") cases.push(a.value);
+      if (a.field === "常用结构") commonPatterns.push(a.value);
+      if (a.field === "语气") tone.push(a.value);
+      if (a.field === "禁用表达") avoidPhrases.push(a.value);
+    });
+
+    try {
+      const res = await fetch(`/api/creators/${selectedCreatorId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          beliefs: beliefs.length > 0 ? beliefs : undefined,
+          cases: cases.length > 0 ? cases : undefined,
+          commonPatterns: commonPatterns.length > 0 ? commonPatterns : undefined,
+          tone: tone.length > 0 ? tone : undefined,
+          avoidPhrases: avoidPhrases.length > 0 ? avoidPhrases : undefined,
+        }),
+      });
+      if (!res.ok) throw new Error("写入失败");
+      setLocalAdditions((prev) => prev.filter((a) => !a.accepted));
+      setLocalModifications((prev) => prev.filter((m) => !m.accepted));
+
+      // Mark the LLM profile suggestion as applied if it exists
+      const profileSuggestion = task?.asset?.profileSuggestion || asset?.profileSuggestion;
+      if (profileSuggestion?.id) {
+        await fetch(`/api/creators/${selectedCreatorId}/suggestions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            suggestionId: profileSuggestion.id,
+            action: "apply",
+          }),
+        }).catch(() => {
+          // Non-fatal: suggestion status update is best-effort
+        });
+      }
+    } catch (err) {
+      setProcessError(err instanceof Error ? err.message : "写入失败");
+    }
+  };
+
+  // ---- Feedback handlers ----
+  const submitContentFeedback = async () => {
+    if (!taskId || (!contentFeedbackText.trim() && contentFeedbackTags.size === 0)) return;
+    try {
+      await fetch(`/api/tasks/${taskId}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tags: Array.from(contentFeedbackTags),
+          message: contentFeedbackText,
+          scope: "current_draft",
+        }),
+      });
+      setContentFeedbackText("");
+      setContentFeedbackTags(new Set());
+      const taskRes = await fetch(`/api/tasks/${taskId}`);
+      if (taskRes.ok) setTask(await taskRes.json() as Task);
+    } catch (err) {
+      console.error("Feedback error:", err);
+    }
+  };
+
+  const submitProfileFeedback = async () => {
+    if (!taskId || (!profileFeedbackText.trim() && profileFeedbackTags.size === 0)) return;
+    try {
+      await fetch(`/api/tasks/${taskId}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tags: Array.from(profileFeedbackTags),
+          message: profileFeedbackText,
+          scope: "creator_profile",
+        }),
+      });
+      setProfileFeedbackText("");
+      setProfileFeedbackTags(new Set());
+      const taskRes = await fetch(`/api/tasks/${taskId}`);
+      if (taskRes.ok) setTask(await taskRes.json() as Task);
+    } catch (err) {
+      console.error("Profile feedback error:", err);
+    }
+  };
+
+  const toggleContentFeedbackTag = (tag: string) => {
+    setContentFeedbackTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag);
+      else next.add(tag);
+      return next;
+    });
   };
 
   const toggleProfileFeedbackTag = (tag: string) => {
@@ -245,17 +439,34 @@ export default function CreatePage() {
     });
   };
 
-  // ---- Draft ----
-  const handleDraftChange = (value: string) => {
-    setDraftContent(value);
-    setDraftsSaved(false);
-    setTimeout(() => setDraftsSaved(true), 600);
-  };
-
-  const selectedPersona = personas.find((p) => p.id === selectedPersonaId);
+  // ---- Derived data ----
+  const selectedCreator = creators.find((c) => c.id === selectedCreatorId);
   const selectedPlatformName = platformOptions.find((p) => p.key === selectedPlatform)?.name || "当前平台";
 
-  const hasContent = uploadedAsset !== null;
+  const currentDraft = useMemo(() => {
+    const drafts = allDrafts.filter((d: Draft) => d.platform === selectedPlatform);
+    if (drafts.length === 0) return null;
+    return drafts.sort((a: Draft, b: Draft) => b.createdAt - a.createdAt)[0];
+  }, [allDrafts, selectedPlatform]);
+
+  const sourceContent = task?.asset?.transcript?.fullText || asset?.transcript?.fullText || "";
+
+  const hasContent = asset !== null;
+  const canGenerate = hasContent && !isProcessing && !!selectedPlatform;
+
+  const handleDraftChange = (value: string) => {
+    if (currentDraft) {
+      setDraftEdits((prev) => ({ ...prev, [currentDraft.id]: value }));
+    }
+    setDraftSaved(false);
+    setTimeout(() => setDraftSaved(true), 600);
+  };
+
+  const draftDisplayContent = currentDraft
+    ? (draftEdits[currentDraft.id] ?? currentDraft.content)
+    : "";
+
+  const draftDisplayTitle = currentDraft?.title ?? "尚未生成";
 
   return (
     <AppShell
@@ -263,10 +474,16 @@ export default function CreatePage() {
       title="把一条内容流转成多平台文字稿件"
       description="上传内容、转写解析、选择画像和平台后生成可编辑稿件。"
     >
-      <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-        {/* ====== Left Column: Upload & Transcript ====== */}
-        <section className="space-y-6">
-          {/* Upload Area */}
+      {processError && (
+        <div className="mb-4 rounded-card border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {processError}
+        </div>
+      )}
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        {/* ====== Left Column: Upload & Source ====== */}
+        <div className="space-y-6">
+          {/* Top Left: Upload Area */}
           <div className="rounded-card border border-paper-200 bg-paper-0 p-2 shadow-sheet">
             <div className="rounded-[8px] bg-paper-0 p-5">
               <SectionTitle
@@ -285,13 +502,18 @@ export default function CreatePage() {
                 onClick={() => fileInputRef.current?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                disabled={isUploading}
+                disabled={isUploading || isProcessing}
                 className="mt-4 flex min-h-32 w-full flex-col items-center justify-center rounded-card border border-dashed border-paper-200 bg-paper-50 px-4 text-center transition-[background-color,transform] duration-300 active:scale-[0.98] hover:bg-paper-0 disabled:opacity-60"
               >
                 {isUploading ? (
                   <>
                     <Loader2 className="size-7 animate-spin text-seal-500" />
                     <span className="mt-3 text-sm font-medium text-ink-600">正在上传...</span>
+                  </>
+                ) : isProcessing ? (
+                  <>
+                    <Loader2 className="size-7 animate-spin text-seal-500" />
+                    <span className="mt-3 text-sm font-medium text-ink-600">正在解析（ASR + LLM 分析）...</span>
                   </>
                 ) : (
                   <>
@@ -302,66 +524,83 @@ export default function CreatePage() {
                 )}
               </button>
 
-              {uploadedAsset && (
+              {asset && (
                 <div className="mt-3 flex items-center gap-3 rounded-card border border-sage-100 bg-[#f6f8f3] p-3">
                   <Check className="size-4 text-sage-500 shrink-0" />
-                  <span className="text-sm text-ink-700 flex-1 truncate">{uploadedAsset.title}</span>
-                  <span className="text-xs text-ink-400 shrink-0">已上传</span>
+                  <span className="text-sm text-ink-700 flex-1 truncate">{asset.title}</span>
+                  <span className="text-xs text-ink-400 shrink-0">
+                    {asset.status === "analyzed" ? "已解析" : asset.status}
+                  </span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Transcript Display (left side) */}
+          {/* Bottom Left: Source Text & Analysis */}
           <section className="rounded-card border border-paper-200 bg-paper-0 p-5 shadow-sheet">
             <SectionTitle
-              title="转写内容"
-              description={hasContent ? "视频转写与解析结果" : "上传内容后，转写结果将在此显示"}
+              title="源文本与解析"
+              description={hasContent ? "原始转写文本与提取观点" : "上传内容后，源文本将在此显示"}
             />
             {hasContent ? (
-              isTranscribing ? (
+              isProcessing ? (
                 <div className="flex items-center gap-3 py-8 justify-center">
                   <Loader2 className="size-5 animate-spin text-seal-500" />
-                  <span className="text-sm text-ink-500">LLM 正在转写...</span>
+                  <span className="text-sm text-ink-500">正在解析...</span>
                 </div>
               ) : (
-                <p className="max-h-96 overflow-y-auto rounded-card border border-paper-200 bg-paper-50 p-4 text-sm leading-7 text-ink-700 whitespace-pre-line">
-                  {transcriptText || "（转写结果为空）"}
-                </p>
+                <div className="space-y-4">
+                  <p className="max-h-64 overflow-y-auto rounded-card border border-paper-200 bg-paper-50 p-4 text-sm leading-7 text-ink-700 whitespace-pre-line">
+                    {sourceContent || "（源内容为空）"}
+                  </p>
+                  {(task?.asset?.analysis || asset?.analysis)?.corePoints && (
+                    <div className="rounded-card border border-paper-200 bg-paper-50 p-4">
+                      <p className="text-xs font-medium text-ink-400 mb-2">提取的核心观点</p>
+                      <ul className="space-y-2">
+                        {((task?.asset?.analysis || asset?.analysis)?.corePoints as Array<{point?: string; evidence?: string}> || []).map((cp, i) => (
+                          <li key={i} className="text-sm text-ink-700">
+                            <span className="font-medium">{cp.point}</span>
+                            {cp.evidence && <span className="text-ink-400"> — {cp.evidence}</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               )
             ) : (
               <div className="py-8 text-center text-sm text-ink-400">
-                请先上传视频内容，转写结果将自动显示在这里
+                请先上传视频内容，源文本将自动显示在这里
               </div>
             )}
           </section>
-        </section>
+        </div>
 
-        {/* ====== Right Column ====== */}
-        <section className="space-y-6">
-          {/* Flow Config */}
+        {/* ====== Right Column: Config & Output ====== */}
+        <div className="space-y-6">
+          {/* Top Right: Flow Config */}
           <div className="rounded-card border border-paper-200 bg-paper-0 p-5 shadow-sheet">
-            <SectionTitle title="流转配置" description="选择创作者画像和目标平台。" />
+            <SectionTitle title="流转配置" description="选择创作者画像和目标平台，然后生成稿件。" />
 
             <label className="block">
               <span className="text-xs font-medium text-ink-600">创作者画像</span>
               <select
                 className="mt-2 h-10 w-full rounded-button border border-paper-200 bg-paper-0 px-3 text-sm text-ink-800 outline-none focus-visible:border-seal-500"
-                value={selectedPersonaId}
-                onChange={(e) => setSelectedPersonaId(e.target.value)}
+                value={selectedCreatorId}
+                onChange={(e) => setSelectedCreatorId(e.target.value)}
               >
                 <option value="">无画像</option>
-                {personas.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                {creators.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </label>
 
-            {selectedPersona && (
+            {selectedCreator && (
               <div className="mt-3 rounded-card border border-paper-200 bg-paper-50 p-3">
-                <p className="text-xs text-ink-500">{selectedPersona.positioning}</p>
+                <p className="text-xs text-ink-500">{selectedCreator.profile?.positioning || "暂无定位"}</p>
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {selectedPersona.tone.map((t) => (
+                  {(selectedCreator.profile?.tone || []).map((t: string) => (
                     <span key={t} className="rounded-tag bg-seal-50 px-2 py-0.5 text-[10px] font-medium text-seal-600">{t}</span>
                   ))}
                 </div>
@@ -372,35 +611,60 @@ export default function CreatePage() {
             <div className="mt-4">
               <p className="text-xs font-medium text-ink-600">目标平台</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                {platformOptions.map((p) => (
-                  <button
-                    key={p.key}
-                    onClick={() => setSelectedPlatform(p.key)}
-                    className={`rounded-tag border px-3 py-1.5 text-xs font-medium transition-colors ${
-                      selectedPlatform === p.key
-                        ? "border-seal-500 bg-seal-50 text-seal-600"
-                        : "border-paper-200 bg-paper-50 text-ink-600 hover:bg-paper-0"
-                    }`}
-                  >
-                    {p.name}
-                  </button>
-                ))}
+                {platformOptions.map((p) => {
+                  const active = selectedPlatform === p.key;
+                  return (
+                    <button
+                      key={p.key}
+                      onClick={() => setSelectedPlatform(p.key)}
+                      className={`rounded-tag border px-3 py-1.5 text-xs font-medium transition-colors ${
+                        active
+                          ? "border-seal-500 bg-seal-50 text-seal-600"
+                          : "border-paper-200 bg-paper-50 text-ink-600 hover:bg-paper-0"
+                      }`}
+                    >
+                      {p.name}
+                    </button>
+                  );
+                })}
               </div>
+            </div>
+
+            {/* Generate button */}
+            <div className="mt-5 flex flex-wrap gap-3 border-t border-paper-200 pt-4">
+              <button
+                onClick={taskId ? handleRegenerate : handleGenerate}
+                disabled={!canGenerate || isGenerating}
+                className="inline-flex min-h-10 items-center gap-2 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action disabled:opacity-50"
+              >
+                {isGenerating ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : taskId ? (
+                  <RefreshCcw className="size-4" />
+                ) : null}
+                {isGenerating ? "生成中..." : taskId ? "重新生成" : "生成稿件"}
+              </button>
+              {task?.status === "generating" && (
+                <span className="inline-flex items-center text-xs text-ink-500">
+                  <Loader2 className="size-3 animate-spin mr-1" />
+                  LLM 正在生成稿件...
+                </span>
+              )}
             </div>
           </div>
 
-          {/* ====== Tab Switcher ====== */}
+          {/* Bottom Right: Three Modules */}
           <div className="flex gap-1 rounded-card border border-paper-200 bg-paper-50 p-1">
             {([
-              ["transcript", "转写内容"],
+              ["content", "生成内容"],
               ["profile", "画像更新确认"],
-              ["drafts", "稿件"],
-            ] as [WorkMode, string][]).map(([key, label]) => (
+              ["drafts", "稿件库"],
+            ] as [WorkModule, string][]).map(([key, label]) => (
               <button
                 key={key}
-                onClick={() => setMode(key)}
+                onClick={() => setModule(key)}
                 className={`flex-1 rounded-button py-2 text-xs font-medium transition-colors ${
-                  mode === key
+                  module === key
                     ? "bg-paper-0 text-ink-950 shadow-hairline"
                     : "text-ink-500 hover:text-ink-800"
                 }`}
@@ -410,82 +674,116 @@ export default function CreatePage() {
             ))}
           </div>
 
-          {/* ====== Tab 1: 转写内容 + 转写反馈 ====== */}
-          {mode === "transcript" && (
+          {/* Module 1: Generated Content */}
+          {module === "content" && (
             <div className="space-y-6">
-              {/* Transcript card */}
-              <div className="rounded-card border border-paper-200 bg-paper-0 p-6 shadow-sheet">
-                {hasContent ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-ink-400">当前素材</span>
-                      <span className="text-sm font-medium text-ink-800">{uploadedAsset.title}</span>
+              <section className="rounded-card border border-paper-200 bg-paper-0 p-5 shadow-sheet">
+                {currentDraft ? (
+                  <>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <SectionTitle
+                        kicker={selectedPlatformName}
+                        title={draftDisplayTitle}
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(draftDisplayContent); }}
+                          className="inline-flex min-h-9 items-center gap-1.5 rounded-button border border-paper-200 bg-paper-0 px-3 text-xs font-medium text-ink-800 hover:bg-paper-50"
+                        >
+                          <Copy className="size-3.5" />
+                          复制
+                        </button>
+                        <button
+                          onClick={handleRegenerate}
+                          disabled={isGenerating}
+                          className="inline-flex min-h-9 items-center gap-1.5 rounded-button border border-paper-200 bg-paper-0 px-3 text-xs font-medium text-ink-800 hover:bg-paper-50 disabled:opacity-50"
+                        >
+                          <RefreshCcw className="size-3.5" />
+                          重新生成
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-medium text-ink-400">转写全文</p>
-                      {isTranscribing ? (
-                        <div className="flex items-center gap-3 py-8 justify-center">
-                          <Loader2 className="size-5 animate-spin text-seal-500" />
-                          <span className="text-sm text-ink-500">LLM 正在转写...</span>
-                        </div>
-                      ) : (
-                        <p className="mt-2 max-h-80 overflow-y-auto rounded-card border border-paper-200 bg-paper-50 p-4 text-sm leading-7 text-ink-700 whitespace-pre-line">
-                          {transcriptText || "（转写结果为空）"}
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => setMode("profile")}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action"
-                    >
-                      查看画像变化
-                      <ArrowRight className="size-4" />
-                    </button>
+
+                    <textarea
+                      className="mt-4 min-h-[260px] w-full resize-none rounded-card border border-paper-200 bg-paper-50 p-4 text-[15px] leading-7 text-ink-800 outline-none focus-visible:border-seal-500 focus-visible:ring-2 focus-visible:ring-seal-500/20"
+                      value={draftDisplayContent}
+                      onChange={(e) => handleDraftChange(e.target.value)}
+                    />
+                    {draftSaved && (
+                      <p className="mt-1 text-xs text-ink-400">已自动保存</p>
+                    )}
+
+                    {currentDraft.notes && currentDraft.notes.length > 0 && (
+                      <div className="mt-4 rounded-card border border-paper-200 bg-paper-50 p-3">
+                        <p className="text-xs font-medium text-ink-500">生成备注</p>
+                        <ul className="mt-1 space-y-1">
+                          {currentDraft.notes.map((note: string, i: number) => (
+                            <li key={i} className="text-xs text-ink-600">{note}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                ) : task?.status === "generating" ? (
+                  <div className="py-16 text-center">
+                    <Loader2 className="size-8 animate-spin text-seal-500 mx-auto" />
+                    <p className="mt-4 text-sm text-ink-500">正在生成 {selectedPlatformName} 稿件...</p>
                   </div>
                 ) : (
-                  <div className="py-8 text-center">
-                    <p className="text-sm text-ink-500">尚未上传内容</p>
-                    <p className="mt-1 text-xs text-ink-400">上传视频后，转写内容将在此显示</p>
+                  <div className="py-16 text-center">
+                    <p className="text-sm text-ink-500">{selectedPlatformName} 稿件尚未生成</p>
+                    <button
+                      onClick={taskId ? handleRegenerate : handleGenerate}
+                      disabled={!canGenerate || isGenerating}
+                      className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action disabled:opacity-50"
+                    >
+                      {isGenerating ? <Loader2 className="size-4 animate-spin" /> : null}
+                      {isGenerating ? "生成中..." : "生成稿件"}
+                    </button>
                   </div>
                 )}
-              </div>
+              </section>
 
-              {/* Transcript Feedback (edits the transcription) */}
-              {hasContent && (
+              {/* Content Feedback */}
+              {taskId && (
                 <div className="rounded-card border border-paper-200 bg-paper-0 p-5 shadow-sheet">
                   <div className="flex items-center gap-2 mb-4">
                     <MessageSquareText className="size-4 text-seal-500" />
-                    <h2 className="font-editorial text-[24px] font-semibold">转写反馈</h2>
-                    <span className="text-xs text-ink-400">输入反馈后 LLM 将重新转写</span>
+                    <h2 className="font-editorial text-[24px] font-semibold">内容反馈</h2>
+                    <span className="text-xs text-ink-400">输入反馈后重新生成</span>
                   </div>
 
-                  {transcriptFeedbackHistory.length > 0 && (
+                  {task?.feedback && task.feedback.filter((fb) => fb.scope === "current_draft").length > 0 && (
                     <div className="mb-4 space-y-2 max-h-48 overflow-y-auto">
-                      {transcriptFeedbackHistory.map((fb, i) => (
-                        <div key={i} className="rounded-card border border-paper-200 bg-paper-50 p-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-ink-400">{fb.time}</span>
-                            {fb.tags.length > 0 && (
-                              <div className="flex gap-1">
-                                {fb.tags.map((t) => (
-                                  <span key={t} className="rounded-tag bg-seal-50 px-1.5 py-0.5 text-[10px] font-medium text-seal-600">{t}</span>
-                                ))}
-                              </div>
-                            )}
+                      {task.feedback
+                        .filter((fb) => fb.scope === "current_draft")
+                        .map((fb, i) => (
+                          <div key={i} className="rounded-card border border-paper-200 bg-paper-50 p-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-ink-400">
+                                {new Date(fb.createdAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                              {fb.tags.length > 0 && (
+                                <div className="flex gap-1">
+                                  {fb.tags.map((t: string) => (
+                                    <span key={t} className="rounded-tag bg-seal-50 px-1.5 py-0.5 text-[10px] font-medium text-seal-600">{t}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            {fb.message && <p className="mt-1 text-sm text-ink-700">{fb.message}</p>}
                           </div>
-                          {fb.text && <p className="mt-1 text-sm text-ink-700">{fb.text}</p>}
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   )}
 
                   <div className="flex flex-wrap gap-2">
                     {feedbackTagOptions.map((tag) => {
-                      const active = transcriptFeedbackTags.has(tag);
+                      const active = contentFeedbackTags.has(tag);
                       return (
                         <button
                           key={tag}
-                          onClick={() => toggleTranscriptFeedbackTag(tag)}
+                          onClick={() => toggleContentFeedbackTag(tag)}
                           className={`rounded-tag border px-2.5 py-1 text-xs transition-colors ${
                             active
                               ? "border-seal-500 bg-seal-50 text-seal-600"
@@ -501,21 +799,16 @@ export default function CreatePage() {
                   <div className="mt-3 flex gap-2">
                     <input
                       className="flex-1 h-10 rounded-button border border-paper-200 bg-paper-50 px-3 text-sm outline-none focus-visible:border-seal-500"
-                      placeholder="例如：这段转写不准确，漏掉了关于复盘的部分..."
-                      value={transcriptFeedbackText}
-                      onChange={(e) => setTranscriptFeedbackText(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") submitTranscriptFeedback(); }}
+                      placeholder="例如：标题太夸张，压低一点..."
+                      value={contentFeedbackText}
+                      onChange={(e) => setContentFeedbackText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") submitContentFeedback(); }}
                     />
                     <button
-                      onClick={submitTranscriptFeedback}
-                      disabled={isTranscribing}
-                      className="inline-flex min-h-10 items-center gap-1.5 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action disabled:opacity-50"
+                      onClick={submitContentFeedback}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action"
                     >
-                      {isTranscribing ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        "发送"
-                      )}
+                      发送
                     </button>
                   </div>
                 </div>
@@ -523,31 +816,23 @@ export default function CreatePage() {
             </div>
           )}
 
-          {/* ====== Tab 2: 画像更新确认 + 画像反馈 ====== */}
-          {mode === "profile" && (
+          {/* Module 2: Profile Update Confirmation */}
+          {module === "profile" && (
             <div className="space-y-6">
-              {/* Profile changes */}
               <div className="rounded-card border border-paper-200 bg-paper-0 p-5 shadow-sheet">
                 <SectionTitle
                   title="画像更新确认"
-                  description="本次内容对当前创作者画像的建议变化。请逐一接受、编辑或删除。"
+                  description="本次内容对当前创作者画像的建议变化。请逐一接受、编辑或忽略。"
                 />
 
-                {isUpdatingProfile && (
-                  <div className="flex items-center gap-3 py-4 justify-center">
-                    <Loader2 className="size-5 animate-spin text-seal-500" />
-                    <span className="text-sm text-ink-500">LLM 正在根据反馈更新画像建议...</span>
-                  </div>
-                )}
-
                 {/* Additions */}
-                {profileChanges.additions.length > 0 && (
+                {localAdditions.length > 0 && (
                   <div className="mt-4">
                     <p className="text-xs font-medium text-sage-600">将新增</p>
                     <div className="mt-2 space-y-2">
-                      {profileChanges.additions.map((item, i) => (
-                        <div key={i} className="flex items-start gap-3 rounded-card border border-sage-100 bg-[#f6f8f3] p-3">
-                          <span className="mt-0.5 rounded bg-sage-100 px-1.5 py-0.5 text-[10px] font-medium text-sage-600 shrink-0">{item.field}</span>
+                      {localAdditions.map((item, i) => (
+                        <div key={i} className={`flex items-start gap-3 rounded-card border p-3 ${item.accepted ? "border-seal-200 bg-seal-50/40" : "border-sage-100 bg-[#f6f8f3]"}`}>
+                          <span className={`mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium shrink-0 ${item.accepted ? "bg-seal-100 text-seal-600" : "bg-sage-100 text-sage-600"}`}>{item.field}</span>
                           {editingAdditionIdx === i ? (
                             <div className="flex-1 flex gap-2">
                               <input
@@ -569,24 +854,32 @@ export default function CreatePage() {
                           )}
                           {editingAdditionIdx !== i && (
                             <div className="flex gap-1 shrink-0">
-                              <button
-                                onClick={() => acceptAddition(i)}
-                                className="rounded-button border border-sage-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-sage-600 hover:bg-sage-50"
-                              >
-                                <Check className="size-3 inline mr-0.5" />接受
-                              </button>
-                              <button
-                                onClick={() => startEditAddition(i)}
-                                className="rounded-button border border-amber-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-amber-600 hover:bg-amber-50"
-                              >
-                                <Pencil className="size-3 inline mr-0.5" />编辑
-                              </button>
-                              <button
-                                onClick={() => deleteAddition(i)}
-                                className="rounded-button border border-red-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-red-500 hover:bg-red-50"
-                              >
-                                <Trash2 className="size-3 inline mr-0.5" />删除
-                              </button>
+                              {item.accepted ? (
+                                <span className="inline-flex items-center gap-1 rounded-button border border-seal-200 bg-seal-50 px-2 py-1 text-[10px] font-medium text-seal-600">
+                                  <Check className="size-3" />已接受
+                                </span>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => acceptAddition(i)}
+                                    className="rounded-button border border-sage-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-sage-600 hover:bg-sage-50"
+                                  >
+                                    <Check className="size-3 inline mr-0.5" />接受
+                                  </button>
+                                  <button
+                                    onClick={() => startEditAddition(i)}
+                                    className="rounded-button border border-amber-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-amber-600 hover:bg-amber-50"
+                                  >
+                                    <Pencil className="size-3 inline mr-0.5" />编辑
+                                  </button>
+                                  <button
+                                    onClick={() => deleteAddition(i)}
+                                    className="rounded-button border border-red-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-red-500 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="size-3 inline mr-0.5" />删除
+                                  </button>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
@@ -596,13 +889,13 @@ export default function CreatePage() {
                 )}
 
                 {/* Modifications */}
-                {profileChanges.modifications.length > 0 && (
+                {localModifications.length > 0 && (
                   <div className="mt-4">
                     <p className="text-xs font-medium text-amber-600">将修改</p>
                     <div className="mt-2 space-y-2">
-                      {profileChanges.modifications.map((item, i) => (
-                        <div key={i} className="flex items-start gap-3 rounded-card border border-amber-100 bg-[#fefcf5] p-3">
-                          <span className="mt-0.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 shrink-0">{item.field}</span>
+                      {localModifications.map((item, i) => (
+                        <div key={i} className={`flex items-start gap-3 rounded-card border p-3 ${item.accepted ? "border-seal-200 bg-seal-50/40" : "border-amber-100 bg-[#fefcf5]"}`}>
+                          <span className={`mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium shrink-0 ${item.accepted ? "bg-seal-100 text-seal-600" : "bg-amber-100 text-amber-600"}`}>{item.field}</span>
                           {editingModificationIdx === i ? (
                             <div className="flex-1 flex items-center gap-2 text-sm">
                               <span className="line-through text-ink-400">{item.from}</span>
@@ -630,24 +923,32 @@ export default function CreatePage() {
                           )}
                           {editingModificationIdx !== i && (
                             <div className="flex gap-1 shrink-0">
-                              <button
-                                onClick={() => acceptModification(i)}
-                                className="rounded-button border border-amber-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-amber-600 hover:bg-amber-50"
-                              >
-                                <Check className="size-3 inline mr-0.5" />接受
-                              </button>
-                              <button
-                                onClick={() => startEditModification(i)}
-                                className="rounded-button border border-amber-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-amber-600 hover:bg-amber-50"
-                              >
-                                <Pencil className="size-3 inline mr-0.5" />编辑
-                              </button>
-                              <button
-                                onClick={() => deleteModification(i)}
-                                className="rounded-button border border-red-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-red-500 hover:bg-red-50"
-                              >
-                                <Trash2 className="size-3 inline mr-0.5" />删除
-                              </button>
+                              {item.accepted ? (
+                                <span className="inline-flex items-center gap-1 rounded-button border border-seal-200 bg-seal-50 px-2 py-1 text-[10px] font-medium text-seal-600">
+                                  <Check className="size-3" />已接受
+                                </span>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => acceptModification(i)}
+                                    className="rounded-button border border-amber-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-amber-600 hover:bg-amber-50"
+                                  >
+                                    <Check className="size-3 inline mr-0.5" />接受
+                                  </button>
+                                  <button
+                                    onClick={() => startEditModification(i)}
+                                    className="rounded-button border border-amber-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-amber-600 hover:bg-amber-50"
+                                  >
+                                    <Pencil className="size-3 inline mr-0.5" />编辑
+                                  </button>
+                                  <button
+                                    onClick={() => deleteModification(i)}
+                                    className="rounded-button border border-red-200 bg-paper-0 px-2 py-1 text-[10px] font-medium text-red-500 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="size-3 inline mr-0.5" />删除
+                                  </button>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
@@ -656,139 +957,157 @@ export default function CreatePage() {
                   </div>
                 )}
 
-                {profileChanges.additions.length === 0 && profileChanges.modifications.length === 0 && (
+                {localAdditions.length === 0 && localModifications.length === 0 && (
                   <p className="mt-4 text-sm text-ink-400">暂无待确认的画像更新</p>
                 )}
 
-                {/* Confirm actions */}
                 <div className="mt-5 flex flex-wrap gap-3 border-t border-paper-200 pt-4">
-                  <button className="inline-flex min-h-10 items-center gap-2 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action">
+                  <button
+                    onClick={handleConfirmProfile}
+                    disabled={!selectedCreatorId || (!localAdditions.some((a) => a.accepted) && !localModifications.some((m) => m.accepted))}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action disabled:opacity-50"
+                  >
                     <Check className="size-4" />
                     确认写入创作者画像
                   </button>
-                  <button className="inline-flex min-h-10 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-4 text-sm font-medium text-ink-800 hover:bg-paper-50">
+                  <button
+                    onClick={() => { setLocalAdditions([]); setLocalModifications([]); }}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-4 text-sm font-medium text-ink-800 hover:bg-paper-50"
+                  >
                     不写入，仅用于本次任务
                   </button>
                 </div>
               </div>
 
-              {/* Profile Feedback (updates the profile suggestions) */}
-              <div className="rounded-card border border-paper-200 bg-paper-0 p-5 shadow-sheet">
-                <div className="flex items-center gap-2 mb-4">
-                  <MessageSquareText className="size-4 text-seal-500" />
-                  <h2 className="font-editorial text-[24px] font-semibold">画像反馈</h2>
-                  <span className="text-xs text-ink-400">输入反馈后 LLM 将更新画像建议</span>
-                </div>
-
-                {profileFeedbackHistory.length > 0 && (
-                  <div className="mb-4 space-y-2 max-h-48 overflow-y-auto">
-                    {profileFeedbackHistory.map((fb, i) => (
-                      <div key={i} className="rounded-card border border-paper-200 bg-paper-50 p-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-ink-400">{fb.time}</span>
-                          {fb.tags.length > 0 && (
-                            <div className="flex gap-1">
-                              {fb.tags.map((t) => (
-                                <span key={t} className="rounded-tag bg-seal-50 px-1.5 py-0.5 text-[10px] font-medium text-seal-600">{t}</span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        {fb.text && <p className="mt-1 text-sm text-ink-700">{fb.text}</p>}
-                      </div>
-                    ))}
+              {/* Profile Feedback */}
+              {taskId && (
+                <div className="rounded-card border border-paper-200 bg-paper-0 p-5 shadow-sheet">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MessageSquareText className="size-4 text-seal-500" />
+                    <h2 className="font-editorial text-[24px] font-semibold">画像反馈</h2>
+                    <span className="text-xs text-ink-400">输入反馈后系统会记录</span>
                   </div>
-                )}
 
-                <div className="flex flex-wrap gap-2">
-                  {feedbackTagOptions.map((tag) => {
-                    const active = profileFeedbackTags.has(tag);
-                    return (
-                      <button
-                        key={tag}
-                        onClick={() => toggleProfileFeedbackTag(tag)}
-                        className={`rounded-tag border px-2.5 py-1 text-xs transition-colors ${
-                          active
-                            ? "border-seal-500 bg-seal-50 text-seal-600"
-                            : "border-paper-200 bg-paper-50 text-ink-600 hover:bg-paper-0"
-                        }`}
-                      >
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
+                  {task?.feedback && task.feedback.filter((fb) => fb.scope === "creator_profile").length > 0 && (
+                    <div className="mb-4 space-y-2 max-h-48 overflow-y-auto">
+                      {task.feedback
+                        .filter((fb) => fb.scope === "creator_profile")
+                        .map((fb, i) => (
+                          <div key={i} className="rounded-card border border-paper-200 bg-paper-50 p-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-ink-400">
+                                {new Date(fb.createdAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                              {fb.tags.length > 0 && (
+                                <div className="flex gap-1">
+                                  {fb.tags.map((t: string) => (
+                                    <span key={t} className="rounded-tag bg-seal-50 px-1.5 py-0.5 text-[10px] font-medium text-seal-600">{t}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            {fb.message && <p className="mt-1 text-sm text-ink-700">{fb.message}</p>}
+                          </div>
+                        ))}
+                    </div>
+                  )}
 
-                <div className="mt-3 flex gap-2">
-                  <input
-                    className="flex-1 h-10 rounded-button border border-paper-200 bg-paper-50 px-3 text-sm outline-none focus-visible:border-seal-500"
-                    placeholder="例如：语气应该更温和，不要用这么书面的词汇..."
-                    value={profileFeedbackText}
-                    onChange={(e) => setProfileFeedbackText(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") submitProfileFeedback(); }}
-                  />
-                  <button
-                    onClick={submitProfileFeedback}
-                    disabled={isUpdatingProfile}
-                    className="inline-flex min-h-10 items-center gap-1.5 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action disabled:opacity-50"
-                  >
-                    {isUpdatingProfile ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      "发送"
-                    )}
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    {feedbackTagOptions.map((tag) => {
+                      const active = profileFeedbackTags.has(tag);
+                      return (
+                        <button
+                          key={tag}
+                          onClick={() => toggleProfileFeedbackTag(tag)}
+                          className={`rounded-tag border px-2.5 py-1 text-xs transition-colors ${
+                            active
+                              ? "border-seal-500 bg-seal-50 text-seal-600"
+                              : "border-paper-200 bg-paper-50 text-ink-600 hover:bg-paper-0"
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      className="flex-1 h-10 rounded-button border border-paper-200 bg-paper-50 px-3 text-sm outline-none focus-visible:border-seal-500"
+                      placeholder="例如：语气应该更温和，不要用这么书面的词汇..."
+                      value={profileFeedbackText}
+                      onChange={(e) => setProfileFeedbackText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") submitProfileFeedback(); }}
+                    />
+                    <button
+                      onClick={submitProfileFeedback}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action"
+                    >
+                      发送
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
-          {/* ====== Tab 3: 稿件 ====== */}
-          {mode === "drafts" && (
+          {/* Module 3: Draft Library */}
+          {module === "drafts" && (
             <section className="rounded-card border border-paper-200 bg-paper-0 p-5 shadow-sheet">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <SectionTitle
-                  kicker={selectedPlatformName}
-                  title={generatedDraft.title}
-                />
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(draftContent); }}
-                    className="inline-flex min-h-9 items-center gap-1.5 rounded-button border border-paper-200 bg-paper-0 px-3 text-xs font-medium text-ink-800 hover:bg-paper-50"
-                  >
-                    <Copy className="size-3.5" />
-                    复制
-                  </button>
-                  <button
-                    onClick={() => setMode("transcript")}
-                    className="inline-flex min-h-9 items-center gap-1.5 rounded-button border border-paper-200 bg-paper-0 px-3 text-xs font-medium text-ink-800 hover:bg-paper-50"
-                  >
-                    <RefreshCcw className="size-3.5" />
-                    重新生成
-                  </button>
-                </div>
-              </div>
-
-              <textarea
-                className="mt-4 min-h-[320px] w-full resize-none rounded-card border border-paper-200 bg-paper-50 p-4 text-[15px] leading-7 text-ink-800 outline-none focus-visible:border-seal-500 focus-visible:ring-2 focus-visible:ring-seal-500/20"
-                value={draftContent}
-                onChange={(e) => handleDraftChange(e.target.value)}
+              <SectionTitle
+                title="稿件库"
+                description="该素材已生成的所有平台稿件"
               />
-              {draftsSaved && (
-                <p className="mt-1 text-xs text-ink-400">已自动保存</p>
-              )}
 
-              <div className="mt-4 flex flex-wrap gap-3">
-                <button
-                  onClick={() => setMode("profile")}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action"
-                >
-                  沉淀到资产库
-                </button>
-              </div>
+              {allDrafts.length === 0 ? (
+                <div className="py-12 text-center">
+                  <FileText className="mx-auto size-8 text-ink-300" />
+                  <p className="mt-3 text-sm text-ink-500">暂无稿件</p>
+                  <p className="mt-1 text-xs text-ink-400">选择平台并生成后，稿件将出现在这里</p>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {allDrafts.map((draft) => {
+                    const platformName = platformOptions.find((p) => p.key === draft.platform)?.name || draft.platform;
+                    const isActive = draft.platform === selectedPlatform && draft.id === currentDraft?.id;
+                    return (
+                      <div
+                        key={draft.id}
+                        onClick={() => {
+                          setSelectedPlatform(draft.platform);
+                          setModule("content");
+                        }}
+                        className={`cursor-pointer rounded-card border p-4 transition-colors ${
+                          isActive
+                            ? "border-seal-500 bg-seal-50/40"
+                            : "border-paper-200 bg-paper-50 hover:bg-paper-0"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <span className="inline-block rounded-tag bg-seal-50 px-2 py-0.5 text-[10px] font-medium text-seal-600 mb-1">
+                              {platformName}
+                            </span>
+                            <p className="text-sm font-medium text-ink-950 truncate">{draft.title}</p>
+                          </div>
+                          <span className="text-xs text-ink-400 shrink-0">
+                            {new Date(draft.createdAt).toLocaleString("zh-CN", {
+                              month: "2-digit",
+                              day: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-ink-600 line-clamp-2">{draft.content.slice(0, 120)}...</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           )}
-        </section>
+        </div>
       </div>
     </AppShell>
   );

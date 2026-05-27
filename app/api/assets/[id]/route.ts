@@ -1,6 +1,6 @@
 import { ensureMigrations } from "@/lib/db/migrate";
 import { getDb } from "@/lib/db";
-import { sourceAssets, transcripts, analyses } from "@/lib/db/schema";
+import { sourceAssets, transcripts, analyses, creators, creatorProfiles, profileSuggestions } from "@/lib/db/schema";
 import { uid, json, jsonError, now, parseJsonField } from "@/lib/api-utils";
 import { eq } from "drizzle-orm";
 import { getEnv } from "@/lib/server/env";
@@ -8,7 +8,8 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { unlink, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { analyzeTranscript } from "@/lib/pipeline/llm";
+import { analyzeTranscript, suggestCreatorProfileUpdates } from "@/lib/pipeline/llm";
+import type { CreatorProfile, Platform } from "@/lib/pipeline/types";
 
 const execFileAsync = promisify(execFile);
 
@@ -26,6 +27,20 @@ export async function GET(
   const [transcript] = await db.select().from(transcripts).where(eq(transcripts.assetId, id));
   const [analysis] = await db.select().from(analyses).where(eq(analyses.assetId, id));
 
+  let profileSuggestion = null;
+  if (asset.creatorId) {
+    const [sugg] = await db
+      .select()
+      .from(profileSuggestions)
+      .where(eq(profileSuggestions.assetId, id));
+    if (sugg) {
+      profileSuggestion = {
+        ...sugg,
+        suggestions: parseJsonField(sugg.suggestions, {}),
+      };
+    }
+  }
+
   return json({
     ...asset,
     transcript: transcript
@@ -41,6 +56,7 @@ export async function GET(
           riskNotes: parseJsonField<string[]>(analysis.riskNotes, []),
         }
       : null,
+    profileSuggestion,
   });
 }
 
@@ -89,6 +105,45 @@ export async function POST(
     });
 
     await db.update(sourceAssets).set({ status: "analyzed", updatedAt: now() }).where(eq(sourceAssets.id, id));
+
+    // Generate creator profile suggestions if asset is linked to a creator
+    if (asset.creatorId) {
+      try {
+        const [c] = await db.select().from(creators).where(eq(creators.id, asset.creatorId));
+        const [p] = await db.select().from(creatorProfiles).where(eq(creatorProfiles.creatorId, asset.creatorId));
+        if (c && p) {
+          const currentProfile: CreatorProfile = {
+            persona_id: c.id,
+            name: c.name,
+            positioning: p.positioning,
+            domain: p.domain,
+            tone: parseJsonField<string[]>(p.tone, []),
+            beliefs: parseJsonField<string[]>(p.beliefs, []),
+            cases: parseJsonField<string[]>(p.cases, []),
+            common_patterns: parseJsonField<string[]>(p.commonPatterns, []),
+            avoid_phrases: parseJsonField<string[]>(p.avoidPhrases, []),
+            title_preference: p.titlePreference,
+            platform_rules: parseJsonField<Record<string, string>>(p.platformRules, {}) as Record<Platform, string>,
+          };
+          const suggestions = await suggestCreatorProfileUpdates({
+            transcript: transcriptText,
+            currentProfile,
+          });
+          await db.insert(profileSuggestions).values({
+            id: uid(),
+            assetId: id,
+            creatorId: asset.creatorId,
+            suggestions: JSON.stringify(suggestions),
+            status: "pending",
+            createdAt: now(),
+            updatedAt: now(),
+          });
+        }
+      } catch (suggErr) {
+        console.error("Profile suggestion failed:", suggErr);
+        // Non-fatal: do not fail the whole analysis if suggestions fail
+      }
+    }
 
     return json({ transcript: transcriptText, analysis });
   } catch (err) {

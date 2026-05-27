@@ -1,7 +1,7 @@
 import initSqlJs, { type Database as SqlJsDatabase } from "sql.js";
 import { drizzle } from "drizzle-orm/sql-js";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import * as schema from "./schema";
 import { getEnv } from "@/lib/server/env";
 
@@ -13,11 +13,11 @@ const DB_FILENAME = "flowcast.db";
 
 function getDbPath(): string {
   const env = getEnv();
-  const dir = env.appStorageDir;
+  const dir = resolve(env.appStorageDir);
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }
-  return `${dir}/${DB_FILENAME}`;
+  return join(dir, DB_FILENAME);
 }
 
 function saveToDisk() {
@@ -37,7 +37,8 @@ function scheduleSave() {
 export async function initDb(): Promise<ReturnType<typeof drizzle>> {
   if (dbInstance) return dbInstance;
 
-  const SQL = await initSqlJs();
+  const wasmBuffer = readFileSync(join(process.cwd(), "node_modules/sql.js/dist/sql-wasm.wasm"));
+  const SQL = await initSqlJs({ wasmBinary: wasmBuffer.buffer });
   const dbPath = getDbPath();
 
   if (existsSync(dbPath)) {

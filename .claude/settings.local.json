@@ -25,7 +25,19 @@
       "mcp__plugin_oh-my-claudecode_t__python_repl",
       "Bash(npm install *)",
       "Bash(npm --version)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(taskkill /PID 28760 /F)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(taskkill /F /PID 28760)",
+      "Bash(file public/logos/*)",
+      "Bash(npx playwright *)",
+      "Bash(python -m json.tool)",
+      "Bash(python -m json.tool /tmp/assets.json)",
+      "Read(//c/Users/Ed/**)",
+      "Read(//c/Users/Ed/AppData/Local/**)",
+      "Bash(npx kill-port *)",
+      "Bash(python -m json.tool /tmp/assets2.json)",
+      "Bash(python *)"
     ]
   }
 }

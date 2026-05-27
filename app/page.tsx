@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, Check, FileText, Upload } from "lucide-react";
+import { ArrowRight, Check, Upload, Workflow } from "lucide-react";
+import { LogoImage } from "@/components/logo-image";
 
 const platforms = [
   { name: "小红书", logo: "/logos/小红书.png" },
@@ -8,18 +9,6 @@ const platforms = [
   { name: "抖音", logo: "/logos/抖音.png" },
   { name: "B 站", logo: "/logos/Bilibili.png" },
 ];
-
-function LogoImage({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
-  if (alt === "X") {
-    return (
-      <span className={`grid place-items-center bg-[#111111] font-sans font-medium text-white ${className}`}>
-        X
-      </span>
-    );
-  }
-
-  return <img src={src} alt={alt} className={`object-contain ${className}`} />;
-}
 
 const flowCards = [
   {
@@ -62,23 +51,6 @@ const platformSamples = [
   ["X", "/logos/X.jpeg", "短句观点串\n节奏更快\n适合转发"],
 ];
 
-const personaItems = ["定位", "观点", "语气", "常用结构", "禁用表达"];
-
-const mapColumns = [
-  {
-    title: "输入形态",
-    items: ["视频", "音频", "图文", "文本"],
-  },
-  {
-    title: "中间层",
-    items: ["内容知识库", "创作者画像", "平台表达规则"],
-  },
-  {
-    title: "输出形态",
-    items: ["多平台文字稿", "视频脚本", "图文草稿", "短视频拆条", "文生视频"],
-  },
-];
-
 const faqs = [
   [
     "为什么当前先开放视频转文字",
@@ -105,8 +77,8 @@ const faqs = [
 function LogoMark() {
   return (
     <span className="relative grid size-10 place-items-center rounded-full border border-seal-500/20 text-seal-600">
-      <span className="absolute h-7 w-7 rounded-full border-2 border-seal-500" />
-      <span className="absolute h-8 w-px rotate-45 bg-seal-500" />
+      <span className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-seal-500" />
+      <span className="absolute left-1/2 top-1/2 h-8 w-px -translate-x-1/2 -translate-y-1/2 rotate-45 bg-seal-500" />
     </span>
   );
 }
@@ -164,7 +136,7 @@ function FlowVisual({ type }: { type: string }) {
     <div className="mx-auto grid h-28 max-w-[176px] gap-1.5">
       {platforms.map((platform) => (
         <div key={platform.name} className="flex min-w-0 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-2.5 py-1">
-          <LogoImage src={platform.logo} alt={platform.name} className="size-4 shrink-0" />
+          <LogoImage src={platform.logo} alt={platform.name} className={platform.name === "B 站" ? "h-3 w-5 shrink-0" : "size-4 shrink-0"} />
           <span className="truncate text-[11px] font-medium text-ink-700">{platform.name}</span>
           <span className="ml-auto h-1.5 w-9 shrink-0 rounded-full bg-paper-200" />
         </div>
@@ -199,7 +171,7 @@ function FlowCard({ card, isLast }: { card: (typeof flowCards)[number]; isLast: 
 function SectionTitle({ eyebrow, title, body }: { eyebrow: string; title: string; body?: string }) {
   return (
     <div className="mx-auto max-w-[760px] text-center">
-      <p className="text-[13px] font-semibold tracking-[0.16em] text-seal-600">{eyebrow}</p>
+      <p className="font-editorial text-[13px] font-semibold tracking-[0.16em] text-seal-600">{eyebrow}</p>
       <h2 className="mt-3 font-editorial text-[34px] font-semibold leading-tight text-ink-950 sm:text-[42px]">{title}</h2>
       {body ? <p className="mt-4 text-[15px] leading-[1.8] text-ink-600">{body}</p> : null}
     </div>
@@ -209,28 +181,19 @@ function SectionTitle({ eyebrow, title, body }: { eyebrow: string; title: string
 export default function LandingPage() {
   return (
     <main className="min-h-[100dvh] bg-paper-0 text-ink-950">
-      <header className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-6 lg:px-14">
+      <header className="mx-auto flex h-[76px] max-w-[1440px] items-center px-6 lg:px-14">
         <Link href="/" className="flex items-center gap-3" aria-label="Flowcast 首页">
           <LogoMark />
           <span className="font-editorial text-[24px] font-semibold leading-none text-ink-950">流转 Flowcast</span>
         </Link>
-        <nav className="hidden items-center gap-16 font-editorial text-[17px] font-semibold text-ink-950 lg:flex">
-          <Link href="#flow">功能</Link>
-          <Link href="#platforms">使用场景</Link>
-          <Link href="#map">版图</Link>
-          <Link href="#faq">常见问题</Link>
-        </nav>
-        <div className="hidden w-[220px] justify-end lg:flex">
-          <Link href="/create" className="inline-flex items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-4 py-2 text-[13px] font-semibold text-ink-950">
-            进入流转工作台
-            <ArrowRight className="size-3.5" strokeWidth={2} aria-hidden="true" />
-          </Link>
-        </div>
       </header>
 
       <section className="px-6 pb-14 pt-10 lg:px-14">
         <div className="mx-auto max-w-[1320px] text-center">
-          <p className="mx-auto inline-flex items-center rounded-full border border-paper-200 bg-paper-0 px-7 py-3 text-[15px] font-semibold text-seal-600 shadow-sheet">
+          <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-paper-200 bg-paper-0 px-6 py-3 text-[15px] font-semibold text-seal-600 shadow-sheet">
+            <span className="grid size-6 place-items-center rounded-full bg-seal-500/10 text-seal-600">
+              <Workflow className="size-3.5" strokeWidth={2} aria-hidden="true" />
+            </span>
             跨模态的专属内容知识库与流转引擎
           </p>
           <h1 className="mx-auto mt-7 max-w-[1120px] font-editorial text-[46px] font-semibold leading-[1.08] tracking-tight text-ink-950 sm:text-[68px] lg:text-[78px]">
@@ -253,17 +216,24 @@ export default function LandingPage() {
             <span>支持平台：</span>
             {platforms.map((platform) => (
               <span key={platform.name} className="inline-flex items-center gap-2 rounded-full border border-paper-200 bg-paper-0 px-3 py-2 shadow-hairline">
-                <LogoImage src={platform.logo} alt={platform.name} className="size-5" />
+                <LogoImage src={platform.logo} alt={platform.name} className={platform.name === "B 站" ? "h-4 w-7" : "size-5"} />
                 <span className="font-medium text-ink-700">{platform.name}</span>
               </span>
             ))}
           </div>
         </div>
 
-        <div id="flow" className="mx-auto mt-8 grid max-w-[1240px] gap-8 lg:grid-cols-5">
-          {flowCards.map((card, index) => (
-            <FlowCard key={card.no} card={card} isLast={index === flowCards.length - 1} />
-          ))}
+        <div id="flow" className="mx-auto mt-14 max-w-[1240px]">
+          <SectionTitle
+            eyebrow="流转路径"
+            title="内容上传、转写解析、画像沉淀、多平台输出"
+            body="从上传到解析、确认、沉淀、输出，用户能看见内容正在跨平台转换"
+          />
+          <div className="mx-auto mt-10 grid gap-8 lg:grid-cols-5">
+            {flowCards.map((card, index) => (
+              <FlowCard key={card.no} card={card} isLast={index === flowCards.length - 1} />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -285,66 +255,46 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="persona" className="px-6 py-16 lg:px-14">
+      <section id="persona" className="border-y border-paper-200 bg-paper-0 px-6 py-16 lg:px-14">
         <SectionTitle
           eyebrow="创作者画像"
-          title="可控沉淀，而不是自动学习"
-          body="系统只生成画像变化建议，用户确认后，变化才会写入创作者画像"
+          title="不是泛 AI 文案，是带创作者画像的输出"
+          body="系统调用创作者画像中的定位、观点、语气和结构，让流转后的内容尽量保留创作者本人的表达特征"
         />
-        <div className="mx-auto mt-10 grid max-w-[980px] gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="grid gap-4 sm:grid-cols-5 lg:grid-cols-1">
-            {personaItems.map((item) => (
-              <div key={item} className="rounded-[10px] border border-paper-200 bg-paper-0 p-4 text-center shadow-sheet lg:text-left">
-                <p className="font-editorial text-[22px] font-semibold text-ink-950">{item}</p>
-              </div>
-            ))}
-          </div>
-          <div className="rounded-[10px] border border-paper-200 bg-paper-0 p-6 shadow-sheet">
-            <div className="relative mx-auto h-[260px] max-w-[300px]">
-              <div className="absolute inset-8 rounded-full border border-seal-500/20" />
-              <div className="absolute inset-16 rounded-full border border-seal-500/25" />
-              <div className="absolute left-1/2 top-5 h-[210px] w-px -translate-x-1/2 bg-seal-500/20" />
-              <div className="absolute left-5 top-1/2 h-px w-[250px] -translate-y-1/2 bg-seal-500/20" />
-              <div className="absolute left-[94px] top-[72px] h-[118px] w-[126px] rotate-12 border border-seal-500 bg-seal-500/10" />
-              {personaItems.map((item, index) => {
-                const positions = [
-                  "left-1/2 top-0 -translate-x-1/2",
-                  "right-0 top-[76px]",
-                  "right-8 bottom-6",
-                  "left-8 bottom-6",
-                  "left-0 top-[76px]",
-                ];
-                return (
-                  <span key={item} className={`absolute ${positions[index]} rounded-full bg-paper-0 px-2 py-1 text-[12px] font-semibold text-ink-600`}>
-                    {item}
-                  </span>
-                );
-              })}
+        <div className="mx-auto mt-10 grid max-w-[920px] gap-5 md:grid-cols-2">
+          <article className="rounded-[10px] border border-paper-200 bg-paper-0 p-6 shadow-sheet">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-paper-200 text-[12px] font-bold text-ink-500">AI</span>
+              <h3 className="font-editorial text-[18px] font-semibold text-ink-700">普通 AI 文案</h3>
             </div>
-          </div>
-        </div>
-      </section>
+            <div className="mt-5 space-y-3">
+              {["通用表达，缺少个人语气", "标准结构，不区分平台习惯", "可能使用创作者明确避免的词汇", "观点表述偏向平均，缺少判断力度"].map((item) => (
+                <div key={item} className="flex items-start gap-3">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-paper-300" />
+                  <p className="text-[14px] leading-relaxed text-ink-500">{item}</p>
+                </div>
+              ))}
+            </div>
+          </article>
 
-      <section id="map" className="border-y border-paper-200 bg-[#fbf7ef] px-6 py-16 lg:px-14">
-        <SectionTitle
-          eyebrow="多形态版图"
-          title="输入汇入中间层，再流向输出形态"
-          body="这里展示产品版图，只表达方向，不暗示自动发布或完整视频生成能力"
-        />
-        <div className="mx-auto mt-10 grid max-w-[1120px] gap-5 lg:grid-cols-3">
-          {mapColumns.map((column) => (
-            <div key={column.title} className="rounded-[10px] border border-paper-200 bg-paper-0 p-5 shadow-sheet">
-              <h3 className="font-editorial text-[22px] font-semibold text-ink-950">{column.title}</h3>
-              <div className="mt-5 grid gap-3">
-                {column.items.map((name) => (
-                  <div key={name} className="flex items-center justify-between gap-3 rounded-button border border-paper-200 bg-[#fffaf1] px-4 py-3">
-                    <span className="text-[14px] font-semibold text-ink-950">{name}</span>
-                    <span className="h-px w-12 bg-paper-200" />
-                  </div>
-                ))}
-              </div>
+          <article className="relative rounded-[10px] border border-seal-500/25 bg-paper-0 p-6 shadow-sheet">
+            <div className="absolute -top-3 left-6 inline-flex items-center gap-1.5 rounded-full bg-seal-500 px-3 py-1 text-[12px] font-semibold text-white">
+              <Check className="size-3" strokeWidth={2.5} aria-hidden="true" />
+              调用创作者画像
             </div>
-          ))}
+            <div className="mt-2 flex items-center gap-3">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-seal-500/10 text-[12px] font-bold text-seal-600">我</span>
+              <h3 className="font-editorial text-[18px] font-semibold text-ink-950">画像驱动输出</h3>
+            </div>
+            <div className="mt-5 space-y-3">
+              {["保留创作者观点和个人判断", "匹配语气和常用表达结构", "自动避开创作者禁用表达", "按平台规则调整，而非统一改写"].map((item) => (
+                <div key={item} className="flex items-start gap-3">
+                  <Check className="mt-0.5 size-4 shrink-0 text-seal-500" strokeWidth={2} aria-hidden="true" />
+                  <p className="text-[14px] leading-relaxed text-ink-700">{item}</p>
+                </div>
+              ))}
+            </div>
+          </article>
         </div>
       </section>
 

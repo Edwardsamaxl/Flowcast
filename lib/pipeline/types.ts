@@ -31,7 +31,7 @@ export type TranscriptAnalysis = {
   risk_notes: string[];
 };
 
-export type VoiceProfile = {
+export type CreatorProfile = {
   persona_id: string;
   name: string;
   positioning: string;
@@ -45,7 +45,10 @@ export type VoiceProfile = {
   platform_rules: Record<Platform, string>;
 };
 
-export type VoiceProfileSuggestions = {
+// Legacy alias for backward compatibility
+export type VoiceProfile = CreatorProfile;
+
+export type CreatorProfileSuggestions = {
   positioning_suggestions: string[];
   tone_suggestions: string[];
   belief_suggestions: string[];
@@ -54,6 +57,9 @@ export type VoiceProfileSuggestions = {
   avoid_phrase_suggestions: string[];
   evidence_segments: string[];
 };
+
+// Legacy alias for backward compatibility
+export type VoiceProfileSuggestions = CreatorProfileSuggestions;
 
 export type GeneratedPlatformDraft = {
   platform: Platform;
@@ -67,4 +73,4 @@ export type GeneratedPlatformDraft = {
   };
 };
 
-export type FeedbackScope = "current_draft" | "voice_profile";
+export type FeedbackScope = "current_draft" | "creator_profile";

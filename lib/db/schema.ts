@@ -140,7 +140,7 @@ export const profileSuggestions = sqliteTable("profile_suggestions", {
   creatorId: text("creator_id")
     .notNull()
     .references(() => creators.id, { onDelete: "cascade" }),
-  suggestions: text("suggestions").notNull().default("{}"), // JSON: VoiceProfileSuggestions
+  suggestions: text("suggestions").notNull().default("{}"), // JSON: CreatorProfileSuggestions
   status: text("status").notNull().default("pending"),
   // pending | applied | ignored
   createdAt: integer("created_at")
@@ -160,7 +160,7 @@ export const feedbackMessages = sqliteTable("feedback_messages", {
     .references(() => rewriteTasks.id, { onDelete: "cascade" }),
   draftId: text("draft_id"), // nullable — may apply to whole task
   scope: text("scope").notNull().default("current_draft"),
-  // "current_draft" | "voice_profile"
+  // "current_draft" | "creator_profile" (legacy: voice_profile)
   tags: text("tags").notNull().default("[]"),  // JSON array
   message: text("message").notNull().default(""),
   createdAt: integer("created_at")

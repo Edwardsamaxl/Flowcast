@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Pencil, UserPlus, X } from "lucide-react";
+import { Check, Pencil, X } from "lucide-react";
 import type { Creator } from "@/lib/hooks/use-creators";
 
-export function VoiceProfile({ creator, onEdit }: { creator: Creator; onEdit?: () => void }) {
+export function CreatorProfile({ creator, onEdit }: { creator: Creator; onEdit?: () => void }) {
   const profile = creator.profile;
   const [editing, setEditing] = useState(false);
 

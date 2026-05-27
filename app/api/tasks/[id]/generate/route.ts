@@ -1,10 +1,10 @@
 import { ensureMigrations } from "@/lib/db/migrate";
 import { getDb } from "@/lib/db";
-import { rewriteTasks, generatedDrafts, transcripts, analyses, creators, creatorProfiles } from "@/lib/db/schema";
+import { rewriteTasks, generatedDrafts, transcripts, analyses, creators, creatorProfiles, feedbackMessages } from "@/lib/db/schema";
 import { uid, json, jsonError, now, parseJsonField } from "@/lib/api-utils";
 import { eq } from "drizzle-orm";
 import { generatePlatformDraft } from "@/lib/pipeline/llm";
-import type { Platform, VoiceProfile } from "@/lib/pipeline/types";
+import type { Platform, CreatorProfile } from "@/lib/pipeline/types";
 
 export async function POST(
   req: Request,
@@ -26,12 +26,12 @@ export async function POST(
   const [analysis] = await db.select().from(analyses).where(eq(analyses.assetId, task.assetId));
   if (!analysis) return jsonError("素材尚未分析", 400);
 
-  let voiceProfile: VoiceProfile | undefined;
+  let creatorProfile: CreatorProfile | undefined;
   if (task.creatorId) {
     const [c] = await db.select().from(creators).where(eq(creators.id, task.creatorId));
     const [p] = await db.select().from(creatorProfiles).where(eq(creatorProfiles.creatorId, task.creatorId));
     if (c && p) {
-      voiceProfile = {
+      creatorProfile = {
         persona_id: c.id,
         name: c.name,
         positioning: p.positioning,
@@ -57,6 +57,19 @@ export async function POST(
     risk_notes: parseJsonField<string[]>(analysis.riskNotes, []),
   };
 
+  // Load previous feedback for this task to pass into the prompt
+  const feedbackRows = await db
+    .select()
+    .from(feedbackMessages)
+    .where(eq(feedbackMessages.taskId, id));
+  const draftFeedback = feedbackRows
+    .filter((f) => f.scope === "current_draft")
+    .map((f) => {
+      const tags = parseJsonField<string[]>(f.tags, []);
+      return tags.length > 0 ? `[${tags.join(", ")}] ${f.message}` : f.message;
+    })
+    .filter((m) => m.trim().length > 0);
+
   await db.update(rewriteTasks).set({ status: "generating", updatedAt: now() }).where(eq(rewriteTasks.id, id));
 
   const drafts = [];
@@ -66,7 +79,8 @@ export async function POST(
         transcript: transcript.fullText,
         analysis: parsedAnalysis,
         platform: platform as Platform,
-        voiceProfile,
+        voiceProfile: creatorProfile,
+        feedback: draftFeedback.length > 0 ? draftFeedback : undefined,
       });
 
       const draftId = uid();

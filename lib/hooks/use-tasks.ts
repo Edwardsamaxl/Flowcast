@@ -15,13 +15,14 @@ export type Draft = {
     suggestions: string[];
   } | null;
   status: string;
+  createdAt: number;
 };
 
 export type Feedback = {
   id: string;
   taskId: string;
   draftId: string | null;
-  scope: "current_draft" | "voice_profile";
+  scope: "current_draft" | "creator_profile";
   tags: string[];
   message: string;
   createdAt: number;
@@ -49,6 +50,19 @@ export type Task = {
       corePoints: unknown[];
       cases: string[];
       quotes: string[];
+    } | null;
+    profileSuggestion?: {
+      id: string;
+      suggestions: {
+        positioning_suggestions?: string[];
+        tone_suggestions?: string[];
+        belief_suggestions?: string[];
+        case_suggestions?: string[];
+        common_pattern_suggestions?: string[];
+        avoid_phrase_suggestions?: string[];
+        evidence_segments?: string[];
+      };
+      status: string;
     } | null;
   } | null;
   creatorProfile?: {
@@ -144,7 +158,7 @@ export function useTask(taskId: string | null) {
   const submitFeedback = useCallback(async (params: {
     tags?: string[];
     message?: string;
-    scope?: "current_draft" | "voice_profile";
+    scope?: "current_draft" | "creator_profile";
     draftId?: string;
   }) => {
     if (!taskId) return;

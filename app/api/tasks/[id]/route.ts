@@ -1,6 +1,6 @@
 import { ensureMigrations } from "@/lib/db/migrate";
 import { getDb } from "@/lib/db";
-import { rewriteTasks, generatedDrafts, feedbackMessages, sourceAssets, transcripts, analyses, creators, creatorProfiles } from "@/lib/db/schema";
+import { rewriteTasks, generatedDrafts, feedbackMessages, sourceAssets, transcripts, analyses, creators, creatorProfiles, profileSuggestions } from "@/lib/db/schema";
 import { json, jsonError, parseJsonField } from "@/lib/api-utils";
 import { eq } from "drizzle-orm";
 
@@ -19,6 +19,21 @@ export async function GET(
   const [asset] = await db.select().from(sourceAssets).where(eq(sourceAssets.id, task.assetId));
   const [transcript] = asset ? await db.select().from(transcripts).where(eq(transcripts.assetId, asset.id)) : [null, null];
   const [analysis] = asset ? await db.select().from(analyses).where(eq(analyses.assetId, asset.id)) : [null, null];
+
+  // Load profile suggestion for this asset
+  let profileSuggestion = null;
+  if (asset) {
+    const [sugg] = await db
+      .select()
+      .from(profileSuggestions)
+      .where(eq(profileSuggestions.assetId, asset.id));
+    if (sugg) {
+      profileSuggestion = {
+        ...sugg,
+        suggestions: parseJsonField(sugg.suggestions, {}),
+      };
+    }
+  }
 
   // Load creator profile
   let creatorProfile = null;
@@ -73,6 +88,7 @@ export async function GET(
                 riskNotes: parseJsonField<string[]>(analysis.riskNotes, []),
               }
             : null,
+          profileSuggestion,
         }
       : null,
     creatorProfile,

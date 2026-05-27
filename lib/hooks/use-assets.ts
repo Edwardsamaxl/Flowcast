@@ -10,7 +10,9 @@ export type Asset = {
   filePath: string;
   duration: string;
   status: string;
+  creatorId: string | null;
   createdAt: number;
+  updatedAt: number;
   transcript?: {
     id: string;
     fullText: string;
@@ -25,6 +27,19 @@ export type Asset = {
     quotes: string[];
     contentAngles: string[];
     riskNotes: string[];
+  } | null;
+  profileSuggestion?: {
+    id: string;
+    suggestions: {
+      positioning_suggestions?: string[];
+      tone_suggestions?: string[];
+      belief_suggestions?: string[];
+      case_suggestions?: string[];
+      common_pattern_suggestions?: string[];
+      avoid_phrase_suggestions?: string[];
+      evidence_segments?: string[];
+    };
+    status: string;
   } | null;
 };
 

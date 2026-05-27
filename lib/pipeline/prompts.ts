@@ -1,4 +1,4 @@
-import type { Platform, VoiceProfile } from "@/lib/pipeline/types";
+import type { Platform, CreatorProfile } from "@/lib/pipeline/types";
 
 export const platformNames: Record<Platform, string> = {
   xiaohongshu: "小红书",
@@ -31,28 +31,32 @@ export function buildTranscriptAnalysisPrompt(transcript: string): string {
   ].join("\n");
 }
 
-export function buildVoiceProfileSuggestionPrompt(transcript: string, currentProfile?: VoiceProfile): string {
+export function buildCreatorProfileSuggestionPrompt(transcript: string, currentProfile?: CreatorProfile): string {
   return [
     "你是中文创作者的人物表达画像分析助手。",
-    "你的任务是从视频转写中提出人物画像更新建议，而不是直接覆盖旧画像。",
+    "你的任务是从视频转写中提出创作者画像更新建议，而不是直接覆盖旧画像。",
     "请输出严格 JSON，不要输出 Markdown。",
     "JSON 字段必须包含：positioning_suggestions, tone_suggestions, belief_suggestions, case_suggestions, common_pattern_suggestions, avoid_phrase_suggestions, evidence_segments。",
-    currentProfile ? `当前人物画像：${JSON.stringify(currentProfile)}` : "当前没有人物画像。",
+    currentProfile ? `当前创作者画像：${JSON.stringify(currentProfile)}` : "当前没有创作者画像。",
     "",
     "视频转写：",
     transcript
   ].join("\n");
 }
 
+/** @deprecated Use buildCreatorProfileSuggestionPrompt */
+export const buildVoiceProfileSuggestionPrompt = buildCreatorProfileSuggestionPrompt;
+
 export function buildPlatformRewritePrompt(params: {
   transcript: string;
   analysis: unknown;
   platform: Platform;
-  voiceProfile?: VoiceProfile;
+  voiceProfile?: CreatorProfile;
+  feedback?: string[];
 }): string {
   const platformRule = params.voiceProfile?.platform_rules[params.platform] ?? defaultPlatformRules[params.platform];
 
-  return [
+  const lines = [
     "你是中文知识创作者的多平台内容改写助手。",
     "请根据原始转写、内容分析、人物画像和平台规则，生成可直接编辑的发布稿。",
     "请输出严格 JSON，不要输出 Markdown。",
@@ -61,17 +65,26 @@ export function buildPlatformRewritePrompt(params: {
     `平台规则：${platformRule}`,
     params.voiceProfile ? `人物画像：${JSON.stringify(params.voiceProfile)}` : "人物画像：无。请保持自然、克制、清晰。",
     `内容分析：${JSON.stringify(params.analysis)}`,
-    "",
-    "原始转写：",
-    params.transcript
-  ].join("\n");
+  ];
+
+  if (params.feedback && params.feedback.length > 0) {
+    lines.push("");
+    lines.push("用户反馈（请在改写时优先处理以下反馈）：");
+    params.feedback.forEach((f, i) => lines.push(`${i + 1}. ${f}`));
+  }
+
+  lines.push("");
+  lines.push("原始转写：");
+  lines.push(params.transcript);
+
+  return lines.join("\n");
 }
 
 export function buildVoiceAlignedRewritePrompt(params: {
   transcript: string;
   analysis: unknown;
   platform: Platform;
-  voiceProfile?: VoiceProfile;
+  voiceProfile?: CreatorProfile;
 }): string {
   const platformRule = params.voiceProfile?.platform_rules[params.platform] ?? defaultPlatformRules[params.platform];
 
