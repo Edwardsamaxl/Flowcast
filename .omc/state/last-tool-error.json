@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"npx tsc --noEmit --pretty 2>&1\",\"timeout\":60000,\"description\":\"TypeScript type check\",\"dangerouslyDisableSandbox\":true}",
+  "error": "Exit code 2\n\u001b[96mapp/library/page.tsx\u001b[0m:\u001b[93m67\u001b[0m:\u001b[93m22\u001b[0m - \u001b[91merror\u001b[0m\u001b[90m TS2345: \u001b[0mArgument of type '(prev: ({ id: string; title: string; source: string; duration: string; status: \"已解析，待确认\"; libraryState: \"待写入画像\"; deposited: boolean; excerpt: string; signals: string[]; candidates: string[]; transcriptText: string; corePoints: { ...; }[]; } | { ...; } | { ...; })[]) => ({ ...; } | ... 2 more ... | { ...; })[]' is not assignable to parameter of type 'SetStateAction<({ id: string; ...",
+  "timestamp": "2026-05-26T14:23:42.903Z",
+  "retry_count": 1
+}

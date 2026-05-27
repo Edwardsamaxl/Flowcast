@@ -1,225 +1,364 @@
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check, FileText, Upload } from "lucide-react";
 
-/* ---- Douyin inline SVG ---- */
+const platforms = [
+  { name: "小红书", logo: "/logos/小红书.png" },
+  { name: "知乎", logo: "/logos/知乎.png" },
+  { name: "X", logo: "/logos/X.jpeg" },
+  { name: "抖音", logo: "/logos/抖音.png" },
+  { name: "B 站", logo: "/logos/Bilibili.png" },
+];
 
-function DouyinLogo({ className }: { className?: string }) {
+function LogoImage({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
+  if (alt === "X") {
+    return (
+      <span className={`grid place-items-center bg-[#111111] font-sans font-medium text-white ${className}`}>
+        X
+      </span>
+    );
+  }
+
+  return <img src={src} alt={alt} className={`object-contain ${className}`} />;
+}
+
+const flowCards = [
+  {
+    no: "01",
+    title: "内容上传",
+    body: "短视频、口播\n图文观点、文本素材",
+    visual: "upload",
+  },
+  {
+    no: "02",
+    title: "转写解析",
+    body: "从原始内容里\n抽出观点和结构",
+    visual: "wave",
+  },
+  {
+    no: "03",
+    title: "用户确认",
+    body: "只给变化建议\n确认后进入画像",
+    visual: "confirm",
+  },
+  {
+    no: "04",
+    title: "画像沉淀",
+    body: "定位、观点、语气\n结构、禁用表达",
+    visual: "radar",
+  },
+  {
+    no: "05",
+    title: "多平台输出",
+    body: "同一观点\n变成不同平台版本",
+    visual: "platforms",
+  },
+];
+
+const platformSamples = [
+  ["小红书", "/logos/小红书.png", "标题直接\n场景强\n短段落种草"],
+  ["抖音", "/logos/抖音.png", "前三秒抓人\n口语推进\n结尾落行动"],
+  ["B 站", "/logos/Bilibili.png", "结构完整\n适合动态\n适合简介"],
+  ["知乎", "/logos/知乎.png", "结论先行\n解释原因\n论证感更强"],
+  ["X", "/logos/X.jpeg", "短句观点串\n节奏更快\n适合转发"],
+];
+
+const personaItems = ["定位", "观点", "语气", "常用结构", "禁用表达"];
+
+const mapColumns = [
+  {
+    title: "输入形态",
+    items: ["视频", "音频", "图文", "文本"],
+  },
+  {
+    title: "中间层",
+    items: ["内容知识库", "创作者画像", "平台表达规则"],
+  },
+  {
+    title: "输出形态",
+    items: ["多平台文字稿", "视频脚本", "图文草稿", "短视频拆条", "文生视频"],
+  },
+];
+
+const faqs = [
+  [
+    "为什么当前先开放视频转文字",
+    "视频是创作者最常见的表达入口，尤其是短视频和口播，观点更集中，转写解析后更适合快速流转成多个平台版本",
+  ],
+  [
+    "为什么暂时不支持文转视频",
+    "文生视频能力的稳定性、可控性和成片质量还不足以支撑严肃创作者的日常发布，Flowcast 会先把内容理解、画像沉淀和文字流转链路做好",
+  ],
+  [
+    "音频、图文、文本什么时候支持",
+    "这些形态都在产品版图内，当前还在开发中，页面展示方向和边界，但不会把它们包装成已经完整可用",
+  ],
+  [
+    "上传内容会自动写入创作者画像吗",
+    "不会，系统只会提出画像变化建议，用户确认后才会写入创作者画像",
+  ],
+  [
+    "是否会自动发布到平台",
+    "暂不支持自动发布，当前重点是生成可编辑、可复制、可沉淀的多平台内容版本",
+  ],
+];
+
+function LogoMark() {
   return (
-    <svg viewBox="0 0 120 28" fill="none" className={className} aria-label="抖音">
-      <path
-        d="M99.5 2h6l.1.5c.2 3 1.3 5.8 3.2 8.1l.4.4-.2.5c-1 4-1 8 .3 11.7l.7 1.9c-.8-.2-1.5-.5-2.2-1v8.8c0 3-1.2 5.7-3.4 7.7-2.2 2-5.1 3.2-8.1 3.2-2.2 0-4.2-.7-5.8-2 2-2.5 2.4-5.8 1.5-8.8-.5-1.8-1.7-3.2-3.3-4-1.7-.8-3.6-.9-5.3-.1v-.1c-1.1-1.2-1.8-2.8-1.8-4.5 0-1.8.7-3.5 2-4.7 2-1.8 4.6-2.8 7.3-2.8.4 0 .8 0 1.2.1v6h-.1c-.4 0-.8 0-1.1.2-1 .2-1.9.9-2.3 1.8h-.1c-.3.7-.5 1.5.2 2.2.4.5 1 .8 1.6.8.8 0 1.5-.4 2-1 .7-.8 1-1.8 1-3V2h5.5ZM18.9 1.8c1.1.9 2.4 1.6 3.8 1.8v4.2c-1.3-.2-2.5-.6-3.8-1.3v5.2c0 2.9-1.1 5.7-3 7.7-1.7 1.8-3.9 2.8-6.1 2.8-1 0-2-.3-3-.8 1.7-2 2-4.6 1.2-7-.5-1.3-1.4-2.5-2.8-3-1.4-.7-3.2-.7-4.5.2v-.1c-1-1-1.5-2.3-1.5-3.7 0-1.5.6-2.9 1.7-3.9 1.7-1.5 3.8-2.3 6.1-2.3h.7v5h-.1c-.2 0-.5 0-.7.1-.9.2-1.6.9-1.8 1.7h-.1c-.2.7 0 1.4.4 2 .3.4.8.7 1.3.7.8 0 1.5-.3 2-.9.5-.7.8-1.4.8-2.3V1.8h4.9Z"
-        fill="#111"
-      />
-      <path
-        d="M21.3 0c-.2.8-.5 1.6-.9 2.3.1 0 .2.1.2.2.4.3.8.7 1.2 1-.2-.7-.3-1.4-.5-2.1V0Z"
-        fill="#20D7D7"
-      />
-    </svg>
+    <span className="relative grid size-10 place-items-center rounded-full border border-seal-500/20 text-seal-600">
+      <span className="absolute h-7 w-7 rounded-full border-2 border-seal-500" />
+      <span className="absolute h-8 w-px rotate-45 bg-seal-500" />
+    </span>
   );
 }
 
-/* ---- Data ---- */
+function FlowVisual({ type }: { type: string }) {
+  if (type === "upload") {
+    return (
+      <div className="mx-auto grid h-28 w-full place-items-center rounded-card border border-dashed border-paper-200 bg-paper-0">
+        <div className="text-center">
+          <Upload className="mx-auto size-8 text-seal-500" strokeWidth={1.8} />
+          <p className="mt-3 text-[12px] leading-relaxed text-ink-500">短视频 / 口播 / 图文观点</p>
+        </div>
+      </div>
+    );
+  }
 
-const logos = [
-  { name: "小红书", src: "/logos/xiaohongshu.svg" },
-  { name: "抖音", component: DouyinLogo },
-  { name: "B站", src: "/logos/bilibili.svg" },
-  { name: "X", src: "/logos/x.svg" },
-  { name: "知乎", src: "/logos/zhihu.svg" },
-];
+  if (type === "wave") {
+    return (
+      <div className="flex h-28 items-center justify-center">
+        <div className="flex items-center gap-1">
+          {[10, 18, 26, 42, 30, 52, 24, 36, 18, 28, 12].map((height, index) => (
+            <span key={index} className="w-1 rounded-full bg-seal-500/75" style={{ height }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-/* ---- Page ---- */
+  if (type === "confirm") {
+    return (
+      <div className="mx-auto grid h-28 max-w-[190px] gap-2">
+        {["观点提炼", "语气风格", "表达结构"].map((item) => (
+          <div key={item} className="flex items-center justify-between rounded-button border border-paper-200 bg-paper-0 px-3 py-2 text-[12px] text-ink-700">
+            <span>{item}</span>
+            <Check className="size-3.5 text-seal-500" strokeWidth={2} aria-hidden="true" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (type === "radar") {
+    return (
+      <div className="relative mx-auto h-28 w-36">
+        <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-seal-500/18" />
+        <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-seal-500/25" />
+        <div className="absolute left-1/2 top-4 h-20 w-px -translate-x-1/2 bg-seal-500/20" />
+        <div className="absolute left-5 top-1/2 h-px w-28 -translate-y-1/2 bg-seal-500/20" />
+        <div className="absolute left-[43px] top-[34px] h-[54px] w-[58px] rotate-12 border border-seal-500 bg-seal-500/10" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto grid h-28 max-w-[176px] gap-1.5">
+      {platforms.map((platform) => (
+        <div key={platform.name} className="flex min-w-0 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-2.5 py-1">
+          <LogoImage src={platform.logo} alt={platform.name} className="size-4 shrink-0" />
+          <span className="truncate text-[11px] font-medium text-ink-700">{platform.name}</span>
+          <span className="ml-auto h-1.5 w-9 shrink-0 rounded-full bg-paper-200" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FlowCard({ card, isLast }: { card: (typeof flowCards)[number]; isLast: boolean }) {
+  return (
+    <div className="relative">
+      <article className="min-h-[236px] rounded-[10px] border border-paper-200 bg-paper-0 p-5 shadow-sheet">
+        <div className="flex items-baseline gap-3">
+          <span className="font-editorial text-[17px] font-semibold text-seal-600">{card.no}</span>
+          <h3 className="whitespace-nowrap font-editorial text-[19px] font-semibold leading-tight text-ink-950">{card.title}</h3>
+        </div>
+        <div className="mt-5">
+          <FlowVisual type={card.visual} />
+        </div>
+        <p className="mt-4 whitespace-pre-line text-center text-[13px] leading-relaxed text-ink-600">{card.body}</p>
+      </article>
+      {!isLast ? (
+        <div className="absolute left-full top-1/2 z-10 hidden w-[58px] -translate-y-1/2 items-center lg:flex">
+          <span className="h-px flex-1 bg-seal-500" />
+          <span className="size-3 rounded-full border-2 border-seal-500 bg-paper-0" />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SectionTitle({ eyebrow, title, body }: { eyebrow: string; title: string; body?: string }) {
+  return (
+    <div className="mx-auto max-w-[760px] text-center">
+      <p className="text-[13px] font-semibold tracking-[0.16em] text-seal-600">{eyebrow}</p>
+      <h2 className="mt-3 font-editorial text-[34px] font-semibold leading-tight text-ink-950 sm:text-[42px]">{title}</h2>
+      {body ? <p className="mt-4 text-[15px] leading-[1.8] text-ink-600">{body}</p> : null}
+    </div>
+  );
+}
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-paper-0 text-ink-950">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-paper-200 bg-paper-0/90 backdrop-blur">
-        <div className="mx-auto flex h-[72px] max-w-[1180px] items-center px-6">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="grid size-9 place-items-center rounded-lg bg-ink-950 font-editorial text-base font-semibold text-paper-0">
-              流
-            </span>
-            <span className="font-editorial text-lg font-semibold">流转</span>
+    <main className="min-h-[100dvh] bg-paper-0 text-ink-950">
+      <header className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-6 lg:px-14">
+        <Link href="/" className="flex items-center gap-3" aria-label="Flowcast 首页">
+          <LogoMark />
+          <span className="font-editorial text-[24px] font-semibold leading-none text-ink-950">流转 Flowcast</span>
+        </Link>
+        <nav className="hidden items-center gap-16 font-editorial text-[17px] font-semibold text-ink-950 lg:flex">
+          <Link href="#flow">功能</Link>
+          <Link href="#platforms">使用场景</Link>
+          <Link href="#map">版图</Link>
+          <Link href="#faq">常见问题</Link>
+        </nav>
+        <div className="hidden w-[220px] justify-end lg:flex">
+          <Link href="/create" className="inline-flex items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-4 py-2 text-[13px] font-semibold text-ink-950">
+            进入流转工作台
+            <ArrowRight className="size-3.5" strokeWidth={2} aria-hidden="true" />
           </Link>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-[880px] px-6 pb-24 pt-24 text-center sm:pt-32 lg:pt-40">
-        <p className="mx-auto inline-flex rounded-full border border-seal-500/15 bg-seal-50 px-4 py-1.5 text-[12px] font-medium tracking-[0.1em] text-seal-600">
-          跨模态的专属内容知识库与流转引擎
-        </p>
-
-        <h1 className="mx-auto mt-8 max-w-4xl font-editorial text-[44px] font-semibold leading-[1.07] tracking-[-0.01em] text-ink-950 sm:text-[68px] lg:text-[84px]">
-          让视频、音频、图文、文本自由<span className="text-seal-500">流转</span>
-        </h1>
-
-        <p className="mx-auto mt-8 max-w-[580px] text-[17px] leading-[1.8] text-ink-500">
-          把长视频、直播回放、课程录屏、口播、图文和文章
-          转成适合不同平台发布的内容版本
-        </p>
-        <p className="mx-auto mt-3 max-w-[580px] text-[15px] leading-[1.7] text-ink-400">
-          当前先开放视频转文字链路，并通过创作者画像保留你的观点、语气和表达方式
-        </p>
-
-        {/* CTAs */}
-        <div className="mt-12 flex flex-wrap justify-center gap-4">
-          <Link
-            href="/library"
-            className="group inline-flex items-center gap-4 rounded-2xl bg-seal-500 px-8 py-5 text-left shadow-action transition-all duration-500 ease-out hover:bg-seal-600 active:scale-[0.98]"
-          >
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-paper-0/15 text-paper-0">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="18" height="18" x="3" y="3" rx="2" />
-                <path d="M3 9h18" />
-                <path d="M9 21V9" />
-              </svg>
-            </span>
-            <span className="text-left">
-              <span className="block text-[15px] font-semibold leading-tight text-paper-0">
-                创建创作者画像
+      <section className="px-6 pb-14 pt-10 lg:px-14">
+        <div className="mx-auto max-w-[1320px] text-center">
+          <p className="mx-auto inline-flex items-center rounded-full border border-paper-200 bg-paper-0 px-7 py-3 text-[15px] font-semibold text-seal-600 shadow-sheet">
+            跨模态的专属内容知识库与流转引擎
+          </p>
+          <h1 className="mx-auto mt-7 max-w-[1120px] font-editorial text-[46px] font-semibold leading-[1.08] tracking-tight text-ink-950 sm:text-[68px] lg:text-[78px]">
+            让视频、音频、图文、文本自由<span className="text-seal-500">流转</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-[760px] text-[18px] leading-[1.85] text-ink-600">
+            把已有内容沉淀成创作者画像，再根据你的观点、语气和结构，流转成适合不同平台发布的内容版本
+          </p>
+          <div className="mt-7 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link href="/library" className="inline-flex min-w-[220px] items-center justify-center gap-3 rounded-button bg-seal-500 px-7 py-4 text-[16px] font-semibold text-paper-0 shadow-action">
+              创建创作者画像
+              <ArrowRight className="size-4" strokeWidth={2} aria-hidden="true" />
+            </Link>
+            <Link href="/create" className="inline-flex min-w-[220px] items-center justify-center gap-3 rounded-button border border-seal-500/55 bg-paper-0 px-7 py-4 text-[16px] font-semibold text-ink-950">
+              进入流转工作台
+              <ArrowRight className="size-4" strokeWidth={2} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3 text-[14px] text-ink-500">
+            <span>支持平台：</span>
+            {platforms.map((platform) => (
+              <span key={platform.name} className="inline-flex items-center gap-2 rounded-full border border-paper-200 bg-paper-0 px-3 py-2 shadow-hairline">
+                <LogoImage src={platform.logo} alt={platform.name} className="size-5" />
+                <span className="font-medium text-ink-700">{platform.name}</span>
               </span>
-              <span className="mt-0.5 block text-[13px] leading-snug text-paper-0/65">
-                让 AI 用你的语气和观点来写
-              </span>
-            </span>
-            <ArrowRight className="size-4 shrink-0 text-paper-0/40 transition-transform duration-500 group-hover:translate-x-1" aria-hidden="true" />
-          </Link>
+            ))}
+          </div>
+        </div>
 
-          <Link
-            href="/create"
-            className="group inline-flex items-center gap-4 rounded-2xl bg-ink-950 px-8 py-5 text-left shadow-action transition-all duration-500 ease-out hover:bg-ink-800 active:scale-[0.98]"
-          >
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-paper-0/10 text-paper-0">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            </span>
-            <span className="text-left">
-              <span className="block text-[15px] font-semibold leading-tight text-paper-0">
-                拆解一条内容
-              </span>
-              <span className="mt-0.5 block text-[13px] leading-snug text-paper-0/55">
-                上传视频，流转出多平台文字稿件
-              </span>
-            </span>
-            <ArrowRight className="size-4 shrink-0 text-paper-0/30 transition-transform duration-500 group-hover:translate-x-1" aria-hidden="true" />
-          </Link>
+        <div id="flow" className="mx-auto mt-8 grid max-w-[1240px] gap-8 lg:grid-cols-5">
+          {flowCards.map((card, index) => (
+            <FlowCard key={card.no} card={card} isLast={index === flowCards.length - 1} />
+          ))}
         </div>
       </section>
 
-      {/* Platform logos */}
-      <section className="mx-auto max-w-[880px] px-6 pb-20">
-        <p className="mb-10 text-center text-[12px] font-medium tracking-[0.15em] text-ink-300">
-          覆盖平台
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
-          {logos.map((item) => (
-            <div key={item.name} className="flex h-7 items-center" title={item.name}>
-              {item.component ? (
-                <item.component className="h-full w-auto opacity-40 transition-opacity duration-500 hover:opacity-100" />
-              ) : (
-                <img
-                  src={item.src!}
-                  alt={item.name}
-                  className="h-full w-auto opacity-40 transition-opacity duration-500 hover:opacity-100"
-                />
-              )}
+      <section id="platforms" className="border-y border-paper-200 bg-[#fbf7ef] px-6 py-16 lg:px-14">
+        <SectionTitle
+          eyebrow="平台输出"
+          title="同一份观点，按平台语境改写"
+          body="重点不是只展示平台 Logo，而是让用户看到同一份内容在不同平台中的表达差异"
+        />
+        <div className="mx-auto mt-10 grid max-w-[1120px] gap-4 md:grid-cols-2 lg:grid-cols-5">
+          {platformSamples.map(([name, logo, sample]) => (
+            <article key={name} className="rounded-[10px] border border-paper-200 bg-paper-0 p-5 shadow-sheet">
+              <div className="flex h-10 items-center">
+                <LogoImage src={logo} alt={name} className="max-h-9 w-auto max-w-[112px]" />
+              </div>
+              <p className="mt-5 whitespace-pre-line text-[14px] leading-[1.85] text-ink-700">{sample}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="persona" className="px-6 py-16 lg:px-14">
+        <SectionTitle
+          eyebrow="创作者画像"
+          title="可控沉淀，而不是自动学习"
+          body="系统只生成画像变化建议，用户确认后，变化才会写入创作者画像"
+        />
+        <div className="mx-auto mt-10 grid max-w-[980px] gap-6 lg:grid-cols-[1fr_360px]">
+          <div className="grid gap-4 sm:grid-cols-5 lg:grid-cols-1">
+            {personaItems.map((item) => (
+              <div key={item} className="rounded-[10px] border border-paper-200 bg-paper-0 p-4 text-center shadow-sheet lg:text-left">
+                <p className="font-editorial text-[22px] font-semibold text-ink-950">{item}</p>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-[10px] border border-paper-200 bg-paper-0 p-6 shadow-sheet">
+            <div className="relative mx-auto h-[260px] max-w-[300px]">
+              <div className="absolute inset-8 rounded-full border border-seal-500/20" />
+              <div className="absolute inset-16 rounded-full border border-seal-500/25" />
+              <div className="absolute left-1/2 top-5 h-[210px] w-px -translate-x-1/2 bg-seal-500/20" />
+              <div className="absolute left-5 top-1/2 h-px w-[250px] -translate-y-1/2 bg-seal-500/20" />
+              <div className="absolute left-[94px] top-[72px] h-[118px] w-[126px] rotate-12 border border-seal-500 bg-seal-500/10" />
+              {personaItems.map((item, index) => {
+                const positions = [
+                  "left-1/2 top-0 -translate-x-1/2",
+                  "right-0 top-[76px]",
+                  "right-8 bottom-6",
+                  "left-8 bottom-6",
+                  "left-0 top-[76px]",
+                ];
+                return (
+                  <span key={item} className={`absolute ${positions[index]} rounded-full bg-paper-0 px-2 py-1 text-[12px] font-semibold text-ink-600`}>
+                    {item}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="map" className="border-y border-paper-200 bg-[#fbf7ef] px-6 py-16 lg:px-14">
+        <SectionTitle
+          eyebrow="多形态版图"
+          title="输入汇入中间层，再流向输出形态"
+          body="这里展示产品版图，只表达方向，不暗示自动发布或完整视频生成能力"
+        />
+        <div className="mx-auto mt-10 grid max-w-[1120px] gap-5 lg:grid-cols-3">
+          {mapColumns.map((column) => (
+            <div key={column.title} className="rounded-[10px] border border-paper-200 bg-paper-0 p-5 shadow-sheet">
+              <h3 className="font-editorial text-[22px] font-semibold text-ink-950">{column.title}</h3>
+              <div className="mt-5 grid gap-3">
+                {column.items.map((name) => (
+                  <div key={name} className="flex items-center justify-between gap-3 rounded-button border border-paper-200 bg-[#fffaf1] px-4 py-3">
+                    <span className="text-[14px] font-semibold text-ink-950">{name}</span>
+                    <span className="h-px w-12 bg-paper-200" />
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Workflow */}
-      <section className="border-y border-paper-200 bg-[#faf7f0] px-6 py-24">
-        <div className="mx-auto max-w-[880px]">
-          <h2 className="text-center font-editorial text-[28px] font-semibold text-ink-950 sm:text-[34px]">
-            从内容到稿件，一条完整的流转链路
-          </h2>
-          <div className="mt-14 flex flex-wrap items-start justify-center gap-2 sm:gap-3">
-            {["内容上传", "转写解析", "用户确认", "画像沉淀", "多平台输出"].map((label, i) => (
-              <div key={label} className="flex items-center gap-2 sm:gap-3">
-                <span className="rounded-xl border border-paper-200 bg-paper-0 px-5 py-4 text-[14px] font-semibold text-ink-900 shadow-hairline">
-                  {label}
-                </span>
-                {i < 4 && (
-                  <span className="hidden text-ink-300 sm:block">
-                    <ArrowRight className="size-4" aria-hidden="true" />
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+      <section id="faq" className="px-6 py-16 lg:px-14">
+        <SectionTitle eyebrow="常见问题" title="边界说明" />
+        <div className="mx-auto mt-10 max-w-[920px] divide-y divide-paper-200 border-y border-paper-200">
+          {faqs.map(([question, answer]) => (
+            <article key={question} className="py-5">
+              <h3 className="font-editorial text-[21px] font-semibold text-ink-950">{question}</h3>
+              <p className="mt-3 text-[15px] leading-[1.85] text-ink-600">{answer}</p>
+            </article>
+          ))}
         </div>
       </section>
-
-      {/* "像本人写" comparison */}
-      <section className="px-6 py-24">
-        <div className="mx-auto max-w-[880px]">
-          <h2 className="text-center font-editorial text-[28px] font-semibold text-ink-950 sm:text-[34px]">
-            不只是改写，而是像本人写
-          </h2>
-          <p className="mx-auto mt-5 max-w-[560px] text-center text-[15px] leading-relaxed text-ink-500">
-            创作者画像记录你的语气、观点、禁用表达和写法偏好，让生成的内容保留你的表达特征
-          </p>
-          <div className="mx-auto mt-14 grid max-w-[680px] gap-5 sm:grid-cols-2">
-            <div className="rounded-2xl border border-red-100 bg-[#fef5f5] p-7">
-              <p className="text-[11px] font-semibold tracking-[0.12em] text-red-400">
-                普通 AI 改写
-              </p>
-              <p className="mt-4 text-[14px] leading-[1.8] text-ink-600">
-                宝子们，今天必须分享这个超级干货的学习方法，真的狠狠收藏了！考研人必备，学会了效率直接翻倍，千万不要错过！
-              </p>
-            </div>
-            <div className="rounded-2xl border border-sage-100 bg-[#f6f8f3] p-7">
-              <p className="text-[11px] font-semibold tracking-[0.12em] text-sage-500">
-                流转 + 创作者画像
-              </p>
-              <p className="mt-4 text-[14px] leading-[1.8] text-ink-600">
-                学习计划最重要的不是完美，而是能落地。我见过的逆袭案例，都不是因为用了什么极限方法，而是把一套合理策略坚持到了最后
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Multi-modal vision */}
-      <section className="border-y border-paper-200 bg-[#faf7f0] px-6 py-24">
-        <div className="mx-auto max-w-[880px]">
-          <h2 className="text-center font-editorial text-[28px] font-semibold text-ink-950 sm:text-[34px]">
-            多模态流转版图
-          </h2>
-          <p className="mx-auto mt-5 max-w-[560px] text-center text-[15px] leading-relaxed text-ink-500">
-            当前先从视频转文字开始，后续逐步开放更多流转方向
-          </p>
-          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { type: "视频", status: "可用", statusColor: "text-seal-500", desc: "上传长视频、直播回放或课程录屏，转写成文字流转到多平台" },
-              { type: "音频", status: "稍后接入", statusColor: "text-amber-500", desc: "上传口播音频、播客或课程录音，与视频共享转写管线" },
-              { type: "图文", status: "稍后接入", statusColor: "text-sage-500", desc: "从既有图文提炼观点并改写到其他平台" },
-              { type: "文本", status: "稍后接入", statusColor: "text-sage-500", desc: "从文章、笔记、提纲出发，流转到多个平台" },
-            ].map((item) => (
-              <article key={item.type} className="rounded-2xl border border-paper-200 bg-paper-0 p-5 shadow-hairline">
-                <h3 className="text-[16px] font-semibold text-ink-950">
-                  {item.type}
-                  <span className={`ml-2 text-[12px] font-medium ${item.statusColor}`}>{item.status}</span>
-                </h3>
-                <p className="mt-2 text-[14px] leading-relaxed text-ink-500">{item.desc}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="px-6 py-12">
-        <div className="mx-auto max-w-[880px] text-center text-[13px] text-ink-400">
-          流转 Flowcast — 让创作者把一份内容，流转成多个平台都能发布的版本
-        </div>
-      </footer>
     </main>
   );
 }

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { getEnv } from "@/lib/server/env";
 import { ensureMigrations } from "@/lib/db/migrate";
 import { getDb } from "@/lib/db";
-import { sourceAssets } from "@/lib/db/schema";
+import { sourceAssets, transcripts, analyses } from "@/lib/db/schema";
 import { uid, json, jsonError, now, parseJsonField } from "@/lib/api-utils";
 import { eq, desc } from "drizzle-orm";
 
@@ -12,7 +12,31 @@ export async function GET() {
   await ensureMigrations();
   const db = await getDb();
   const rows = await db.select().from(sourceAssets).orderBy(desc(sourceAssets.createdAt));
-  return json(rows);
+
+  const result = await Promise.all(
+    rows.map(async (asset) => {
+      const [transcript] = await db.select().from(transcripts).where(eq(transcripts.assetId, asset.id));
+      const [analysis] = await db.select().from(analyses).where(eq(analyses.assetId, asset.id));
+      return {
+        ...asset,
+        transcript: transcript
+          ? { ...transcript, segments: parseJsonField(transcript.segments, []) }
+          : null,
+        analysis: analysis
+          ? {
+              ...analysis,
+              corePoints: parseJsonField(analysis.corePoints, []),
+              cases: parseJsonField<string[]>(analysis.cases, []),
+              quotes: parseJsonField<string[]>(analysis.quotes, []),
+              contentAngles: parseJsonField<string[]>(analysis.contentAngles, []),
+              riskNotes: parseJsonField<string[]>(analysis.riskNotes, []),
+            }
+          : null,
+      };
+    })
+  );
+
+  return json(result);
 }
 
 export async function POST(req: NextRequest) {

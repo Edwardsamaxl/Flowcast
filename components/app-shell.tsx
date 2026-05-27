@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, UploadCloud } from "lucide-react";
 import { navItems } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +10,6 @@ type AppShellProps = {
   eyebrow?: string;
   title: string;
   description?: string;
-  actionLabel?: string;
 };
 
 export function AppShell({
@@ -19,7 +17,6 @@ export function AppShell({
   eyebrow,
   title,
   description,
-  actionLabel = "上传视频"
 }: AppShellProps) {
   const pathname = usePathname();
 
@@ -77,20 +74,7 @@ export function AppShell({
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-600">{description}</p>
               ) : null}
             </div>
-            <div className="hidden items-center gap-2 md:flex">
-              <label className="relative">
-                <span className="sr-only">搜索资产</span>
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-                <input
-                  className="h-10 w-60 rounded-button border border-paper-200 bg-paper-0 pl-9 pr-3 text-sm text-ink-800 outline-none transition-[border-color,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] placeholder:text-ink-400 focus-visible:border-seal-500 focus-visible:ring-2 focus-visible:ring-seal-500/20"
-                  placeholder="搜索观点、视频、草稿"
-                />
-              </label>
-              <button className="inline-flex min-h-10 items-center gap-2 rounded-button bg-seal-500 px-4 text-sm font-medium text-paper-0 shadow-action transition-[background-color,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] [@media(hover:hover)]:hover:bg-seal-600">
-                <UploadCloud className="size-4 stroke-[1.5]" aria-hidden="true" />
-                {actionLabel}
-              </button>
-            </div>
+            <div className="hidden items-center gap-2 md:flex" />
           </div>
         </header>
 

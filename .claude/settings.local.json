@@ -23,7 +23,9 @@
       "Bash(curl *)",
       "Bash(convert \"E:/CursorProject/Flowcast/data/ig_09866bd2260b4cb2016a154a315b108191841c750cf1fcfc83.png\" -resize 1200x -quality 85 \"E:/CursorProject/Flowcast/data/ig_concept.jpg\")",
       "mcp__plugin_oh-my-claudecode_t__python_repl",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(npm --version)",
+      "Bash(git *)"
     ]
   }
 }

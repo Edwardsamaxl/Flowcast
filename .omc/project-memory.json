@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1779704517967,
-  "projectRoot": "E:\\CursorProject\\xiangwoxie",
+  "lastScanned": 1779804384660,
+  "projectRoot": "E:\\CursorProject\\Flowcast",
   "techStack": {
     "languages": [
       {
@@ -65,7 +65,10 @@
     "mainDirectories": [
       "app",
       "components",
-      "lib"
+      "docs",
+      "lib",
+      "public",
+      "scripts"
     ],
     "gitBranches": null
   },
@@ -75,7 +78,7 @@
       "path": "app",
       "purpose": "Application code",
       "fileCount": 4,
-      "lastAccessed": 1779704517916,
+      "lastAccessed": 1779804384579,
       "keyFiles": [
         "globals.css",
         "layout.tsx",
@@ -86,8 +89,8 @@
     "artifacts": {
       "path": "artifacts",
       "purpose": null,
-      "fileCount": 8,
-      "lastAccessed": 1779704517928,
+      "fileCount": 9,
+      "lastAccessed": 1779804384591,
       "keyFiles": [
         "calibrate-mobile-nav.png",
         "calibrate-mobile.png",
@@ -99,29 +102,100 @@
     "components": {
       "path": "components",
       "purpose": "UI components",
-      "fileCount": 2,
-      "lastAccessed": 1779704517930,
+      "fileCount": 7,
+      "lastAccessed": 1779804384592,
       "keyFiles": [
         "app-shell.tsx",
-        "ui.tsx"
+        "empty-state.tsx",
+        "feedback-bar.tsx",
+        "feedback-tag.tsx",
+        "textured-bg.tsx"
+      ]
+    },
+    "data": {
+      "path": "data",
+      "purpose": "Data files",
+      "fileCount": 2,
+      "lastAccessed": 1779804384593,
+      "keyFiles": [
+        "Harness.mp4",
+        "ig_09866bd2260b4cb2016a154a315b108191841c750cf1fcfc83.png"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 1,
+      "lastAccessed": 1779804384594,
+      "keyFiles": [
+        "video-text-analysis-tech.md"
       ]
     },
     "lib": {
       "path": "lib",
       "purpose": "Library code",
-      "fileCount": 2,
-      "lastAccessed": 1779704517931,
+      "fileCount": 3,
+      "lastAccessed": 1779804384595,
       "keyFiles": [
+        "api-utils.ts",
         "data.ts",
         "utils.ts"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 0,
+      "lastAccessed": 1779804384596,
+      "keyFiles": []
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 4,
+      "lastAccessed": 1779804384596,
+      "keyFiles": [
+        "analyze-transcript.mjs",
+        "process-video.mjs",
+        "transcribe.py",
+        "transcribe_funasr.py"
+      ]
+    },
+    "storage": {
+      "path": "storage",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1779804384597,
+      "keyFiles": []
+    },
+    "app\\api": {
+      "path": "app\\api",
+      "purpose": "API routes",
+      "fileCount": 0,
+      "lastAccessed": 1779804384598,
+      "keyFiles": []
+    },
+    "storage\\assets": {
+      "path": "storage\\assets",
+      "purpose": "Static assets",
+      "fileCount": 1,
+      "lastAccessed": 1779804384603,
+      "keyFiles": [
+        "596c2cab-8a4c-46a0-bc72-a4d5c142dd34.mp4"
       ]
     }
   },
   "hotPaths": [
     {
+      "path": "app\\library\\page.tsx",
+      "accessCount": 33,
+      "lastAccessed": 1779805516523,
+      "type": "file"
+    },
+    {
       "path": "流转-PRD.md",
-      "accessCount": 30,
-      "lastAccessed": 1779789629165,
+      "accessCount": 31,
+      "lastAccessed": 1779805087482,
       "type": "file"
     },
     {
@@ -131,21 +205,27 @@
       "type": "file"
     },
     {
-      "path": "app\\library\\page.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1779791808788,
+      "path": "app\\create\\page.tsx",
+      "accessCount": 12,
+      "lastAccessed": 1779806756857,
       "type": "file"
     },
     {
       "path": "lib\\data.ts",
-      "accessCount": 8,
-      "lastAccessed": 1779791941670,
+      "accessCount": 10,
+      "lastAccessed": 1779805098756,
       "type": "file"
     },
     {
-      "path": "app\\create\\page.tsx",
-      "accessCount": 7,
-      "lastAccessed": 1779791882774,
+      "path": "components\\app-shell.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1779805507294,
+      "type": "file"
+    },
+    {
+      "path": "app\\api\\assets\\route.ts",
+      "accessCount": 8,
+      "lastAccessed": 1779805098792,
       "type": "file"
     },
     {
@@ -167,21 +247,9 @@
       "type": "file"
     },
     {
-      "path": "components\\app-shell.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1779790766414,
-      "type": "file"
-    },
-    {
       "path": "app\\layout.tsx",
       "accessCount": 4,
       "lastAccessed": 1779790776867,
-      "type": "file"
-    },
-    {
-      "path": "app\\api\\assets\\route.ts",
-      "accessCount": 4,
-      "lastAccessed": 1779790823806,
       "type": "file"
     },
     {
@@ -191,33 +259,33 @@
       "type": "file"
     },
     {
+      "path": "lib\\pipeline\\types.ts",
+      "accessCount": 4,
+      "lastAccessed": 1779804427661,
+      "type": "file"
+    },
+    {
+      "path": "app\\api\\creators\\route.ts",
+      "accessCount": 4,
+      "lastAccessed": 1779804473917,
+      "type": "file"
+    },
+    {
+      "path": "components\\ui.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1779805144900,
+      "type": "file"
+    },
+    {
       "path": "tailwind.config.ts",
       "accessCount": 3,
       "lastAccessed": 1779786850587,
       "type": "file"
     },
     {
-      "path": "components\\ui.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1779789664909,
-      "type": "file"
-    },
-    {
       "path": "lib\\db\\index.ts",
       "accessCount": 3,
       "lastAccessed": 1779790396661,
-      "type": "file"
-    },
-    {
-      "path": "app\\api\\creators\\route.ts",
-      "accessCount": 3,
-      "lastAccessed": 1779790856349,
-      "type": "file"
-    },
-    {
-      "path": "lib\\pipeline\\types.ts",
-      "accessCount": 3,
-      "lastAccessed": 1779791677531,
       "type": "file"
     },
     {
@@ -230,6 +298,18 @@
       "path": "app\\history\\page.tsx",
       "accessCount": 3,
       "lastAccessed": 1779791902436,
+      "type": "file"
+    },
+    {
+      "path": "app\\api\\assets\\[id]\\route.ts",
+      "accessCount": 3,
+      "lastAccessed": 1779804427596,
+      "type": "file"
+    },
+    {
+      "path": "lib\\api-utils.ts",
+      "accessCount": 3,
+      "lastAccessed": 1779805098861,
       "type": "file"
     },
     {
@@ -299,10 +379,16 @@
       "type": "file"
     },
     {
-      "path": "app\\api\\assets\\[id]\\route.ts",
+      "path": "lib\\db\\schema.ts",
       "accessCount": 2,
-      "lastAccessed": 1779790956349,
+      "lastAccessed": 1779804441608,
       "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 2,
+      "lastAccessed": 1779805141571,
+      "type": "directory"
     },
     {
       "path": "tsconfig.json",
@@ -345,12 +431,6 @@
       "accessCount": 1,
       "lastAccessed": 1779706203512,
       "type": "file"
-    },
-    {
-      "path": "",
-      "accessCount": 1,
-      "lastAccessed": 1779706292013,
-      "type": "directory"
     },
     {
       "path": "data\\ig_09866bd2260b4cb2016a154a315b108191841c750cf1fcfc83.png",
@@ -404,18 +484,6 @@
       "path": ".env.example",
       "accessCount": 1,
       "lastAccessed": 1779789741702,
-      "type": "file"
-    },
-    {
-      "path": "lib\\db\\schema.ts",
-      "accessCount": 1,
-      "lastAccessed": 1779790093786,
-      "type": "file"
-    },
-    {
-      "path": "lib\\api-utils.ts",
-      "accessCount": 1,
-      "lastAccessed": 1779790131791,
       "type": "file"
     }
   ],
