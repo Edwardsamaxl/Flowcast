@@ -1,17 +1,19 @@
 import { ensureMigrations } from "@/lib/db/migrate";
-import { getDb } from "@/lib/db";
+import { getDb, saveToDisk } from "@/lib/db";
 import {
   sourceAssets,
   transcripts,
   analyses,
   creators,
   creatorProfiles,
-  profileSuggestions,
+  creatorInsights,
+  profileVersions,
 } from "@/lib/db/schema";
 import { uid, json, jsonError, now, parseJsonField } from "@/lib/api-utils";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { analyzeTranscript, suggestCreatorProfileUpdates } from "@/lib/pipeline/llm";
-import type { CreatorProfile, Platform } from "@/lib/pipeline/types";
+import type { CreatorProfile } from "@/lib/pipeline/types";
+import { createVersionManager, SUGGESTION_DRAFT } from "@/lib/repositories/version-manager";
 
 export async function POST(
   _req: Request,
@@ -24,8 +26,8 @@ export async function POST(
   const [asset] = await db.select().from(sourceAssets).where(eq(sourceAssets.id, id));
   if (!asset) return jsonError("素材不存在", 404);
 
-  if (asset.status !== "transcribed" && asset.status !== "failed") {
-    return jsonError("素材当前状态不支持分析", 400);
+  if (asset.status !== "transcribed" && asset.status !== "failed" && asset.status !== "analyzing") {
+    return jsonError(`素材当前状态不支持分析（当前状态: ${asset.status}，需要先完成转写）`, 400);
   }
 
   const [transcript] = await db.select().from(transcripts).where(eq(transcripts.assetId, id));
@@ -47,31 +49,54 @@ export async function POST(
 
     if (asset.creatorId) {
       const [c] = await db.select().from(creators).where(eq(creators.id, asset.creatorId));
-      const [p] = await db
-        .select()
-        .from(creatorProfiles)
-        .where(eq(creatorProfiles.creatorId, asset.creatorId));
-      if (c && p) {
-        const currentProfile: CreatorProfile = {
-          persona_id: c.id,
-          name: c.name,
-          positioning: p.positioning,
-          domain: p.domain,
-          tone: parseJsonField<string[]>(p.tone, []),
-          beliefs: parseJsonField<string[]>(p.beliefs, []),
-          cases: parseJsonField<string[]>(p.cases, []),
-          common_patterns: parseJsonField<string[]>(p.commonPatterns, []),
-          avoid_phrases: parseJsonField<string[]>(p.avoidPhrases, []),
-          title_preference: p.titlePreference,
-          platform_rules: parseJsonField<Record<string, string>>(
-            p.platformRules,
-            {}
-          ) as Record<Platform, string>,
-        };
+      if (c) {
+        const [p] = await db
+          .select()
+          .from(creatorProfiles)
+          .where(eq(creatorProfiles.creatorId, asset.creatorId));
+
+        const insightRows = await db
+          .select()
+          .from(creatorInsights)
+          .where(eq(creatorInsights.creatorId, asset.creatorId))
+          .orderBy(creatorInsights.createdAt);
+
+        const currentProfile: CreatorProfile | undefined = p
+          ? {
+              id: p.id,
+              creatorId: asset.creatorId,
+              positioning: p.positioning,
+              tone: parseJsonField<string[]>(p.tone, []),
+              beliefs: parseJsonField<string[]>(p.beliefs, []),
+              structures: parseJsonField<string[]>(p.structures, []),
+              avoid_phrases: parseJsonField<string[]>(p.avoidPhrases, []),
+              title_preference: p.titlePreference,
+              catchphrases: parseJsonField<string[]>(p.catchphrases, []),
+              insights: insightRows.map((row) => ({
+                id: row.id,
+                content: row.content,
+                tags: parseJsonField<string[]>(row.tags, []),
+                sourceAssetId: row.sourceAssetId ?? undefined,
+                createdAt: row.createdAt,
+              })),
+            }
+          : undefined;
+
         profilePromise = suggestCreatorProfileUpdates({
           transcript: transcript.fullText,
           currentProfile,
-        });
+        }).then((result) => ({
+          additions: result.additions.map((a) => ({
+            field: a.field,
+            value: a.value || "",
+          })),
+          modifications: result.modifications.map((m) => ({
+            field: m.field,
+            from: m.from || "",
+            to: m.to || "",
+          })),
+          evidence_segments: result.evidenceSegments,
+        }));
       }
     }
 
@@ -111,40 +136,47 @@ export async function POST(
       .set({ status: "analyzed", updatedAt: now() })
       .where(eq(sourceAssets.id, id));
 
-    if (suggestions && asset.creatorId) {
-      const [existingSugg] = await db
-        .select()
-        .from(profileSuggestions)
-        .where(eq(profileSuggestions.assetId, id));
+    // Store profile suggestions as transient drafts in profile_versions
+    // (trigger_type='suggestion_draft', excluded from snapshot cap & restore).
+    let suggestionsPayload: {
+      additions: Array<{ field: string; value: string }>;
+      modifications: Array<{ field: string; from: string; to: string }>;
+      evidence_segments: string[];
+    } | null = null;
 
-      if (existingSugg) {
-        await db
-          .update(profileSuggestions)
-          .set({
-            suggestions: JSON.stringify(suggestions),
-            status: "pending",
-            updatedAt: now(),
-          })
-          .where(eq(profileSuggestions.id, existingSugg.id));
-      } else {
-        await db.insert(profileSuggestions).values({
-          id: uid(),
-          assetId: id,
-          creatorId: asset.creatorId,
-          suggestions: JSON.stringify(suggestions),
-          status: "pending",
-          createdAt: now(),
-          updatedAt: now(),
-        });
-      }
+    if (suggestions && asset.creatorId) {
+      suggestionsPayload = suggestions;
+
+      // Replace any existing draft for this creator so the "latest" lookup is unambiguous.
+      await db
+        .delete(profileVersions)
+        .where(
+          and(
+            eq(profileVersions.creatorId, asset.creatorId),
+            eq(profileVersions.triggerType, SUGGESTION_DRAFT)
+          )
+        );
+
+      const versionManager = createVersionManager();
+      await versionManager.createVersion(
+        asset.creatorId,
+        { suggestions: suggestionsPayload, sourceAssetId: id },
+        {
+          changeSummary: "分析素材生成的画像建议",
+          sourceAssetId: id,
+          triggerType: SUGGESTION_DRAFT,
+        }
+      );
     }
 
-    return json({ status: "analyzed", analysis });
+    saveToDisk();
+    return json({ status: "analyzed", analysis, suggestions: suggestionsPayload });
   } catch (err) {
     await db
       .update(sourceAssets)
       .set({ status: "failed", updatedAt: now() })
       .where(eq(sourceAssets.id, id));
+    saveToDisk();
     const message = err instanceof Error ? err.message : String(err);
     return jsonError(`分析失败: ${message}`, 500);
   }

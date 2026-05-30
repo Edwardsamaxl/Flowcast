@@ -18,6 +18,50 @@ type WorkModule = "content" | "profile" | "drafts";
 type ProfileAddition = { field: string; value: string; accepted?: boolean };
 type ProfileModification = { field: string; from: string; to: string; accepted?: boolean };
 
+const FIELD_DISPLAY_MAP: Record<string, string> = {
+  positioning: "定位",
+  domain: "领域",
+  tone: "语气风格",
+  beliefs: "核心观点",
+  cases: "常用案例",
+  common_patterns: "叙事结构",
+  avoid_phrases: "禁忌表达",
+  title_preference: "标题偏好",
+  定位: "定位",
+  领域: "领域",
+  语气风格: "语气风格",
+  语气: "语气风格",
+  口头禅: "口头禅",
+  核心观点: "核心观点",
+  高频观点: "核心观点",
+  常用案例: "常用案例",
+  叙事结构: "叙事结构",
+  常用结构: "叙事结构",
+  论证方式: "论证方式",
+  禁忌表达: "禁忌表达",
+  禁用表达: "禁忌表达",
+  标题偏好: "标题偏好",
+};
+
+const FIELD_COLOR_MAP: Record<string, { normal: string; accepted: string }> = {
+  定位: { normal: "bg-violet-100 text-violet-700", accepted: "bg-violet-50 text-violet-600" },
+  领域: { normal: "bg-violet-100 text-violet-700", accepted: "bg-violet-50 text-violet-600" },
+  标题偏好: { normal: "bg-violet-100 text-violet-700", accepted: "bg-violet-50 text-violet-600" },
+  核心观点: { normal: "bg-rose-100 text-rose-700", accepted: "bg-rose-50 text-rose-600" },
+  常用案例: { normal: "bg-rose-100 text-rose-700", accepted: "bg-rose-50 text-rose-600" },
+  语气风格: { normal: "bg-sky-100 text-sky-700", accepted: "bg-sky-50 text-sky-600" },
+  口头禅: { normal: "bg-sky-100 text-sky-700", accepted: "bg-sky-50 text-sky-600" },
+  叙事结构: { normal: "bg-emerald-100 text-emerald-700", accepted: "bg-emerald-50 text-emerald-600" },
+  论证方式: { normal: "bg-emerald-100 text-emerald-700", accepted: "bg-emerald-50 text-emerald-600" },
+  禁忌表达: { normal: "bg-amber-100 text-amber-700", accepted: "bg-amber-50 text-amber-600" },
+};
+
+function getFieldMeta(field: string) {
+  const display = FIELD_DISPLAY_MAP[field] || field;
+  const colors = FIELD_COLOR_MAP[display] || { normal: "bg-slate-100 text-slate-700", accepted: "bg-slate-50 text-slate-600" };
+  return { display, colors };
+}
+
 export default function CreatePage() {
   const { creators } = useCreators();
 
@@ -61,8 +105,30 @@ export default function CreatePage() {
   const [draftEdits, setDraftEdits] = useState<Record<string, string>>({});
   const [draftSaved, setDraftSaved] = useState(false);
 
+  // ---- Profile regeneration ----
+  const [isRegeneratingProfile, setIsRegeneratingProfile] = useState(false);
+
   // ---- All drafts accumulator (across platforms for this asset) ----
   const [allDrafts, setAllDrafts] = useState<Draft[]>([]);
+
+  // ---- Selected draft ID (for draft library navigation) ----
+  const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
+
+  // ---- Profile suggestion dismissed state ----
+  const [profileDismissed, setProfileDismissed] = useState(false);
+
+  // Reset transient states when active asset changes
+  const activeAssetId = asset?.id || task?.asset?.id;
+  useEffect(() => {
+    setProfileDismissed(false);
+    setSelectedDraftId(null);
+    setLocalAdditions([]);
+    setLocalModifications([]);
+    setEditingAdditionIdx(null);
+    setEditingAdditionValue("");
+    setEditingModificationIdx(null);
+    setEditingModTo("");
+  }, [activeAssetId]);
 
   // Load task or asset from URL on mount
   useEffect(() => {
@@ -80,10 +146,27 @@ export default function CreatePage() {
         })
         .then((data: Asset) => {
           setAsset(data);
-          if (data.creatorId) setSelectedCreatorId(data.creatorId);
+          setSelectedCreatorId(data.creatorId || "");
           setModule("content");
+
+          // Load any existing tasks for this asset so drafts are restored
+          fetch(`/api/tasks?asset_id=${data.id}`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((tasks: Task[]) => {
+              if (tasks.length > 0) {
+                const latest = tasks.sort((a, b) => b.updatedAt - a.updatedAt)[0];
+                setTaskId(latest.id);
+              }
+            })
+            .catch(() => {
+              // Non-critical: task restoration is best-effort
+            });
+
           // Auto-process if user left before processing completed
-          if (data.status === "uploaded") {
+          const needsTranscribe = data.status === "uploaded" || data.status === "transcribing";
+          const needsAnalyze = data.status === "transcribed" || data.status === "analyzing";
+
+          if (needsTranscribe) {
             setIsProcessing(true);
             setProcessStep("transcribing");
             fetch(`/api/assets/${data.id}/transcribe`, { method: "POST" })
@@ -112,6 +195,25 @@ export default function CreatePage() {
                 setIsProcessing(false);
                 setProcessStep("");
               });
+          } else if (needsAnalyze) {
+            setIsProcessing(true);
+            setProcessStep("analyzing");
+            fetch(`/api/assets/${data.id}/analyze`, { method: "POST" })
+              .then((res) => {
+                if (!res.ok) throw new Error("分析失败");
+                return fetch(`/api/assets/${data.id}`);
+              })
+              .then((res) => res.json())
+              .then((processed: Asset) => {
+                setAsset(processed);
+              })
+              .catch((err) => {
+                setProcessError(err instanceof Error ? err.message : "解析失败");
+              })
+              .finally(() => {
+                setIsProcessing(false);
+                setProcessStep("");
+              });
           }
         })
         .catch((err) => {
@@ -122,6 +224,7 @@ export default function CreatePage() {
 
   // Initialize profile additions/modifications from LLM profile suggestion, falling back to analysis extraction
   useEffect(() => {
+    if (profileDismissed) return;
     if (localAdditions.length > 0 || localModifications.length > 0) return;
 
     const profileSuggestion = task?.asset?.profileSuggestion || asset?.profileSuggestion;
@@ -153,7 +256,7 @@ export default function CreatePage() {
     if (analysis.corePoints && Array.isArray(analysis.corePoints)) {
       analysis.corePoints.forEach((cp: unknown, i: number) => {
         const point = cp as { point?: string };
-        if (i < 3 && point.point) additions.push({ field: "高频观点", value: point.point });
+        if (i < 3 && point.point) additions.push({ field: "核心观点", value: point.point });
       });
     }
     if (analysis.cases && Array.isArray(analysis.cases)) {
@@ -321,6 +424,7 @@ export default function CreatePage() {
 
       const taskRes2 = await fetch(`/api/tasks/${newTaskId}`);
       if (taskRes2.ok) setTask(await taskRes2.json() as Task);
+      setSelectedDraftId(null);
     } catch (err) {
       setProcessError(err instanceof Error ? err.message : "生成失败");
     } finally {
@@ -340,6 +444,7 @@ export default function CreatePage() {
       }
       const taskRes = await fetch(`/api/tasks/${taskId}`);
       if (taskRes.ok) setTask(await taskRes.json() as Task);
+      setSelectedDraftId(null);
     } catch (err) {
       setProcessError(err instanceof Error ? err.message : "重新生成失败");
     } finally {
@@ -401,31 +506,96 @@ export default function CreatePage() {
     const toApplyAdditions = localAdditions.filter((a) => a.accepted);
     const toApplyModifications = localModifications.filter((m) => m.accepted);
 
-    const beliefs: string[] = [];
-    const cases: string[] = [];
-    const commonPatterns: string[] = [];
-    const tone: string[] = [];
-    const avoidPhrases: string[] = [];
+    const profile = selectedCreator?.profile;
+    const beliefs = [...(profile?.beliefs || [])];
+    const structures = [...(profile?.structures || [])];
+    const catchphrases = [...(profile?.catchphrases || [])];
+    const tone = [...(profile?.tone || [])];
+    const avoidPhrases = [...(profile?.avoidPhrases || [])];
+    let positioning = profile?.positioning ?? "";
+    let titlePreference = profile?.titlePreference ?? "";
+
+    const additionFieldMap: Record<string, string[] | undefined> = {
+      "核心观点": beliefs,
+      "高频观点": beliefs,
+      "叙事结构": structures,
+      "常用结构": structures,
+      "论证方式": structures,
+      "语气风格": tone,
+      "语气": tone,
+      "口头禅": catchphrases,
+      "禁忌表达": avoidPhrases,
+      "禁用表达": avoidPhrases,
+      // 英文兜底
+      beliefs,
+      structures,
+      tone,
+      catchphrases,
+      avoid_phrases: avoidPhrases,
+    };
 
     toApplyAdditions.forEach((a) => {
-      if (a.field === "高频观点") beliefs.push(a.value);
-      if (a.field === "常用案例") cases.push(a.value);
-      if (a.field === "常用结构") commonPatterns.push(a.value);
-      if (a.field === "语气") tone.push(a.value);
-      if (a.field === "禁用表达") avoidPhrases.push(a.value);
+      const field = a.field;
+      if (field === "定位" || field === "positioning") {
+        if (!positioning) positioning = a.value;
+      } else if (field === "标题偏好" || field === "title_preference") {
+        if (!titlePreference) titlePreference = a.value;
+      } else {
+        const target = additionFieldMap[field];
+        if (target) target.push(a.value);
+      }
     });
+
+    const modificationFieldMap: Record<string, { scalar?: string; array?: string[] }> = {
+      "定位": { scalar: "positioning" },
+      "标题偏好": { scalar: "titlePreference" },
+      "核心观点": { array: beliefs },
+      "高频观点": { array: beliefs },
+      "叙事结构": { array: structures },
+      "常用结构": { array: structures },
+      "论证方式": { array: structures },
+      "语气风格": { array: tone },
+      "语气": { array: tone },
+      "口头禅": { array: catchphrases },
+      "禁忌表达": { array: avoidPhrases },
+      "禁用表达": { array: avoidPhrases },
+      // 英文兜底
+      positioning: { scalar: "positioning" },
+      title_preference: { scalar: "titlePreference" },
+      beliefs: { array: beliefs },
+      structures: { array: structures },
+      tone: { array: tone },
+      catchphrases: { array: catchphrases },
+      avoid_phrases: { array: avoidPhrases },
+    };
+
+    toApplyModifications.forEach((m) => {
+      const mapping = modificationFieldMap[m.field];
+      if (!mapping) return;
+      if (mapping.array) {
+        const idx = mapping.array.indexOf(m.from);
+        if (idx !== -1) mapping.array[idx] = m.to;
+      } else if (mapping.scalar === "positioning") {
+        positioning = m.to;
+      } else if (mapping.scalar === "titlePreference") {
+        titlePreference = m.to;
+      }
+    });
+
+    const updatePayload: Record<string, unknown> = {};
+    if (beliefs.length > 0) updatePayload.beliefs = beliefs;
+    if (structures.length > 0) updatePayload.structures = structures;
+    if (catchphrases.length > 0) updatePayload.catchphrases = catchphrases;
+    if (tone.length > 0) updatePayload.tone = tone;
+    if (avoidPhrases.length > 0) updatePayload.avoidPhrases = avoidPhrases;
+    if (positioning !== (profile?.positioning ?? "")) updatePayload.positioning = positioning;
+    if (titlePreference !== (profile?.titlePreference ?? "")) updatePayload.titlePreference = titlePreference;
 
     try {
       const res = await fetch(`/api/creators/${selectedCreatorId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          beliefs: beliefs.length > 0 ? beliefs : undefined,
-          cases: cases.length > 0 ? cases : undefined,
-          commonPatterns: commonPatterns.length > 0 ? commonPatterns : undefined,
-          tone: tone.length > 0 ? tone : undefined,
-          avoidPhrases: avoidPhrases.length > 0 ? avoidPhrases : undefined,
-        }),
+        body: JSON.stringify(updatePayload),
       });
       if (!res.ok) throw new Error("写入失败");
       setLocalAdditions((prev) => prev.filter((a) => !a.accepted));
@@ -449,6 +619,58 @@ export default function CreatePage() {
       setProcessError(err instanceof Error ? err.message : "写入失败");
     }
   };
+
+  const handleRegenerateProfile = useCallback(async () => {
+    const assetId = asset?.id || task?.asset?.id;
+    if (!assetId) return;
+    setIsRegeneratingProfile(true);
+    setProcessError(null);
+    try {
+      const res = await fetch(`/api/assets/${assetId}/profile-suggestion`, { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json() as { error?: string };
+        throw new Error(err.error || "重新生成失败");
+      }
+      const data = await res.json() as {
+        suggestions?: {
+          additions?: Array<{ field?: string; value?: string }>;
+          modifications?: Array<{ field?: string; from?: string; to?: string }>;
+        };
+      };
+
+      const additions: ProfileAddition[] = [];
+      const modifications: ProfileModification[] = [];
+
+      const sugg = data.suggestions;
+      if (sugg?.additions && Array.isArray(sugg.additions)) {
+        sugg.additions.forEach((a) => {
+          if (a.field?.trim() && a.value?.trim()) additions.push({ field: a.field.trim(), value: a.value.trim() });
+        });
+      }
+      if (sugg?.modifications && Array.isArray(sugg.modifications)) {
+        sugg.modifications.forEach((m) => {
+          if (m.field?.trim() && m.to?.trim()) modifications.push({ field: m.field.trim(), from: m.from?.trim() || "", to: m.to.trim() });
+        });
+      }
+
+      setProfileDismissed(false);
+      setLocalAdditions(additions);
+      setLocalModifications(modifications);
+
+      if (assetId === asset?.id) {
+        const assetRes = await fetch(`/api/assets/${assetId}`);
+        if (assetRes.ok) setAsset(await assetRes.json() as Asset);
+      }
+      if (taskId) {
+        const taskRes = await fetch(`/api/tasks/${taskId}`);
+        if (taskRes.ok) setTask(await taskRes.json() as Task);
+      }
+    } catch (err) {
+      setProcessError(err instanceof Error ? err.message : "重新生成失败");
+    } finally {
+      setIsRegeneratingProfile(false);
+    }
+  }, [asset?.id, task?.asset?.id, taskId]);
 
   // ---- Feedback handlers ----
   const submitContentFeedback = async () => {
@@ -516,10 +738,14 @@ export default function CreatePage() {
   const selectedPlatformName = platformOptions.find((p) => p.key === selectedPlatform)?.name || "当前平台";
 
   const currentDraft = useMemo(() => {
+    if (selectedDraftId) {
+      const matched = allDrafts.find((d: Draft) => d.id === selectedDraftId);
+      if (matched && matched.platform === selectedPlatform) return matched;
+    }
     const drafts = allDrafts.filter((d: Draft) => d.platform === selectedPlatform);
     if (drafts.length === 0) return null;
     return drafts.sort((a: Draft, b: Draft) => b.createdAt - a.createdAt)[0];
-  }, [allDrafts, selectedPlatform]);
+  }, [allDrafts, selectedPlatform, selectedDraftId]);
 
   const sourceContent = task?.asset?.transcript?.fullText || asset?.transcript?.fullText || "";
 
@@ -904,10 +1130,12 @@ export default function CreatePage() {
                   <div className="mt-4">
                     <p className="text-xs font-medium text-sage-600">将新增</p>
                     <div className="mt-2 space-y-2">
-                      {localAdditions.map((item, i) => (
-                        <div key={i} className={`flex items-start gap-3 rounded-card border p-3 ${item.accepted ? "border-seal-200 bg-seal-50/40" : "border-sage-100 bg-[#f6f8f3]"}`}>
-                          <span className={`mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium shrink-0 ${item.accepted ? "bg-seal-100 text-seal-600" : "bg-sage-100 text-sage-600"}`}>{item.field}</span>
-                          {editingAdditionIdx === i ? (
+                      {localAdditions.map((item, i) => {
+                        const meta = getFieldMeta(item.field);
+                        return (
+                          <div key={i} className={`flex items-start gap-3 rounded-card border p-3 ${item.accepted ? "border-seal-200 bg-seal-50/40" : "border-sage-100 bg-[#f6f8f3]"}`}>
+                            <span className={`mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium shrink-0 ${item.accepted ? meta.colors.accepted : meta.colors.normal}`}>{meta.display}</span>
+                            {editingAdditionIdx === i ? (
                             <div className="flex-1 flex gap-2">
                               <input
                                 className="flex-1 h-8 rounded-button border border-paper-200 bg-paper-0 px-2 text-sm outline-none focus-visible:border-seal-500"
@@ -957,8 +1185,9 @@ export default function CreatePage() {
                             </div>
                           )}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
+                  </div>
                   </div>
                 )}
 
@@ -967,9 +1196,11 @@ export default function CreatePage() {
                   <div className="mt-4">
                     <p className="text-xs font-medium text-amber-600">将修改</p>
                     <div className="mt-2 space-y-2">
-                      {localModifications.map((item, i) => (
-                        <div key={i} className={`flex items-start gap-3 rounded-card border p-3 ${item.accepted ? "border-seal-200 bg-seal-50/40" : "border-amber-100 bg-[#fefcf5]"}`}>
-                          <span className={`mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium shrink-0 ${item.accepted ? "bg-seal-100 text-seal-600" : "bg-amber-100 text-amber-600"}`}>{item.field}</span>
+                      {localModifications.map((item, i) => {
+                        const meta = getFieldMeta(item.field);
+                        return (
+                          <div key={i} className={`flex items-start gap-3 rounded-card border p-3 ${item.accepted ? "border-seal-200 bg-seal-50/40" : "border-amber-100 bg-[#fefcf5]"}`}>
+                            <span className={`mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium shrink-0 ${item.accepted ? meta.colors.accepted : meta.colors.normal}`}>{meta.display}</span>
                           {editingModificationIdx === i ? (
                             <div className="flex-1 flex items-center gap-2 text-sm">
                               <span className="line-through text-ink-400">{item.from}</span>
@@ -1026,8 +1257,9 @@ export default function CreatePage() {
                             </div>
                           )}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
+                  </div>
                   </div>
                 )}
 
@@ -1045,7 +1277,19 @@ export default function CreatePage() {
                     确认写入创作者画像
                   </button>
                   <button
-                    onClick={() => { setLocalAdditions([]); setLocalModifications([]); }}
+                    onClick={handleRegenerateProfile}
+                    disabled={isRegeneratingProfile || !asset}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-4 text-sm font-medium text-ink-800 hover:bg-paper-50 disabled:opacity-50"
+                  >
+                    {isRegeneratingProfile ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <RefreshCcw className="size-4" />
+                    )}
+                    重新生成建议
+                  </button>
+                  <button
+                    onClick={() => { setProfileDismissed(true); setLocalAdditions([]); setLocalModifications([]); }}
                     className="inline-flex min-h-10 items-center gap-2 rounded-button border border-paper-200 bg-paper-0 px-4 text-sm font-medium text-ink-800 hover:bg-paper-50"
                   >
                     不写入，仅用于本次任务
@@ -1149,6 +1393,7 @@ export default function CreatePage() {
                         key={draft.id}
                         onClick={() => {
                           setSelectedPlatform(draft.platform);
+                          setSelectedDraftId(draft.id);
                           setModule("content");
                         }}
                         className={`cursor-pointer rounded-card border p-4 transition-colors ${

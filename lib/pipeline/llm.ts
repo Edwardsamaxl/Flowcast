@@ -1,17 +1,15 @@
 import { callDeepSeekChat } from "@/lib/server/deepseek";
-import {
-  buildPlatformRewritePrompt,
-  buildTranscriptAnalysisPrompt,
-  buildVoiceAlignedRewritePrompt,
-  buildCreatorProfileSuggestionPrompt
-} from "@/lib/pipeline/prompts";
+import { createPromptEngine } from "@/lib/pipeline/prompt-engine";
+import { createProfileAnalyzer } from "@/lib/pipeline/profile-analyzer";
 import type {
   GeneratedPlatformDraft,
   Platform,
   TranscriptAnalysis,
   CreatorProfile,
-  CreatorProfileSuggestions
+  ProfileAnalysisResult,
 } from "@/lib/pipeline/types";
+
+const promptEngine = createPromptEngine();
 
 function parseJsonResponse<T>(content: string): T {
   try {
@@ -40,13 +38,13 @@ export async function analyzeTranscript(transcript: string): Promise<TranscriptA
           "你必须只输出合法 JSON，不要 markdown 代码块，不要解释。",
           "JSON 必须包含以下字段：topic, summary, core_points, cases, quotes, content_angles, risk_notes。",
           "core_points 每一项必须包含 point, evidence, usable_for_platforms。",
-          "usable_for_platforms 只能是：xiaohongshu, douyin, bilibili, zhihu, x。",
+          "usable_for_platforms 是平台标识符数组，根据内容适配性填写。",
           "如果转写文本为空或乱码，请返回空数组和空字符串，不要编造内容。"
         ].join("\n")
       },
       {
         role: "user",
-        content: buildTranscriptAnalysisPrompt(transcript)
+        content: promptEngine.buildAnalysisPrompt(transcript)
       }
     ]
   });
@@ -54,37 +52,16 @@ export async function analyzeTranscript(transcript: string): Promise<TranscriptA
   return parseJsonResponse<TranscriptAnalysis>(content);
 }
 
+/**
+ * Analyze transcript and suggest profile updates.
+ * Returns structured suggestions across 7 core dimensions + insights.
+ */
 export async function suggestCreatorProfileUpdates(params: {
   transcript: string;
   currentProfile?: CreatorProfile;
-}): Promise<CreatorProfileSuggestions> {
-  const content = await callDeepSeekChat({
-    responseFormat: "json_object",
-    temperature: 0.2,
-    messages: [
-      {
-        role: "system",
-        content: [
-          "你是中文创作者的人物表达画像分析助手。",
-          "你的任务是从视频转写中分析创作者表达特征，并提出画像更新建议。",
-          "建议分为两类：",
-          "  - additions：当前画像中没有的新特征（新增）",
-          "  - modifications：当前画像中已有但需要调整的特征（修改）",
-          "你必须只输出合法 JSON，不要 markdown 代码块，不要解释。",
-          "JSON 必须包含：additions, modifications, evidence_segments。",
-          "additions 和 modifications 都是数组，每一项包含 field（字段名）和 value（内容）。",
-          "modifications 每一项额外包含 from（原值）和 to（建议值）。",
-          "如果转写文本为空或乱码，返回空数组，不要编造内容。"
-        ].join("\n")
-      },
-      {
-        role: "user",
-        content: buildCreatorProfileSuggestionPrompt(params.transcript, params.currentProfile)
-      }
-    ]
-  });
-
-  return parseJsonResponse<CreatorProfileSuggestions>(content);
+}): Promise<ProfileAnalysisResult> {
+  const analyzer = createProfileAnalyzer();
+  return analyzer.analyze(params.transcript, params.currentProfile);
 }
 
 /** @deprecated Use suggestCreatorProfileUpdates */
@@ -95,8 +72,24 @@ export async function generatePlatformDraft(params: {
   analysis: TranscriptAnalysis;
   platform: Platform;
   voiceProfile?: CreatorProfile;
+  platformRule?: { ruleTemplate: string; promptOverride?: string };
   feedback?: string[];
 }): Promise<GeneratedPlatformDraft> {
+  const rule = params.platformRule ?? { ruleTemplate: "" };
+
+  const creatorProfile: CreatorProfile = params.voiceProfile ?? {
+    id: "",
+    creatorId: "",
+    positioning: "",
+    tone: [],
+    beliefs: [],
+    structures: [],
+    avoid_phrases: [],
+    title_preference: "",
+    catchphrases: [],
+    insights: [],
+  };
+
   const content = await callDeepSeekChat({
     responseFormat: "json_object",
     temperature: 0.5,
@@ -108,16 +101,23 @@ export async function generatePlatformDraft(params: {
           "你根据原始视频转写、内容分析、创作者画像和目标平台规则，生成可直接发布的文案。",
           "你必须只输出合法 JSON，不要 markdown 代码块，不要解释。",
           "JSON 必须包含：platform, title, content, notes。",
-          "platform 是目标平台标识符（如 xiaohongshu）。",
+          "platform 是目标平台标识符。",
           "title 是文案标题。",
           "content 是完整发布文案。",
-          "notes 是字符串数组，说明改写时的关键决策（如为什么选这个角度、如何适配平台）。",
+          "notes 是字符串数组，说明改写时的关键决策。",
           "如果原始内容为空或乱码，返回空字符串和说明性 notes，不要编造内容。"
         ].join("\n")
       },
       {
         role: "user",
-        content: buildPlatformRewritePrompt(params)
+        content: promptEngine.buildRewritePrompt({
+          transcript: params.transcript,
+          analysis: params.analysis,
+          platform: params.platform,
+          creatorProfile,
+          platformRule: rule,
+          feedback: params.feedback,
+        })
       }
     ]
   });
@@ -130,7 +130,23 @@ export async function generateVoiceAlignedDraft(params: {
   analysis: TranscriptAnalysis;
   platform: Platform;
   voiceProfile?: CreatorProfile;
+  platformRule?: { ruleTemplate: string; promptOverride?: string };
 }): Promise<GeneratedPlatformDraft> {
+  const rule = params.platformRule ?? { ruleTemplate: "" };
+
+  const creatorProfile: CreatorProfile = params.voiceProfile ?? {
+    id: "",
+    creatorId: "",
+    positioning: "",
+    tone: [],
+    beliefs: [],
+    structures: [],
+    avoid_phrases: [],
+    title_preference: "",
+    catchphrases: [],
+    insights: [],
+  };
+
   const content = await callDeepSeekChat({
     responseFormat: "json_object",
     temperature: 0.45,
@@ -148,7 +164,13 @@ export async function generateVoiceAlignedDraft(params: {
       },
       {
         role: "user",
-        content: buildVoiceAlignedRewritePrompt(params)
+        content: promptEngine.buildVoiceAlignedPrompt({
+          transcript: params.transcript,
+          analysis: params.analysis,
+          platform: params.platform,
+          creatorProfile,
+          platformRule: rule,
+        })
       }
     ]
   });

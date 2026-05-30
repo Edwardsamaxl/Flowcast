@@ -21,9 +21,9 @@ async function seed() {
   console.log("=== Inserting profiles ===");
   await db.insert(schema.creatorProfiles).values([
     {
-      id: "profile_01", creatorId: "creator_01", positioning: "科技测评", domain: "数码",
-      tone: "[]", beliefs: "[]", cases: "[]", commonPatterns: "[]", avoidPhrases: "[]",
-      titlePreference: "", platformRules: "{}",
+      id: "profile_01", creatorId: "creator_01", positioning: "科技测评",
+      tone: "[]", beliefs: "[]", structures: "[]", avoidPhrases: "[]",
+      titlePreference: "", catchphrases: "[]",
     },
   ]);
   logCount("After", "creator_profiles");
@@ -31,7 +31,7 @@ async function seed() {
 
   console.log("=== Inserting assets ===");
   await db.insert(schema.sourceAssets).values([
-    { id: "asset_01", creatorId: "creator_01", type: "video", title: "iPhone 15 Pro 体验", source: "B站", filePath: "/a.mp4", duration: "32:15", status: "analyzed" },
+    { id: "asset_01", creatorId: "creator_01", type: "video", title: "iPhone 15 Pro 体验", filePath: "/a.mp4", duration: "32:15", status: "analyzed" },
   ]);
   logCount("After", "source_assets");
   saveToDisk();
@@ -62,13 +62,6 @@ async function seed() {
     { id: "draft_01", taskId: "task_01", platform: "小红书", title: "钛金属 iPhone", content: "...", notes: "[]", status: "draft" },
   ]);
   logCount("After", "generated_drafts");
-  saveToDisk();
-
-  console.log("=== Inserting suggestions ===");
-  await db.insert(schema.profileSuggestions).values([
-    { id: "suggest_01", assetId: "asset_01", creatorId: "creator_01", suggestions: "{}", status: "pending" },
-  ]);
-  logCount("After", "profile_suggestions");
   saveToDisk();
 
   console.log("=== Inserting feedback ===");

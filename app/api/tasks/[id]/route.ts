@@ -1,8 +1,9 @@
 import { ensureMigrations } from "@/lib/db/migrate";
 import { getDb } from "@/lib/db";
-import { rewriteTasks, generatedDrafts, feedbackMessages, sourceAssets, transcripts, analyses, creators, creatorProfiles, profileSuggestions } from "@/lib/db/schema";
+import { rewriteTasks, generatedDrafts, feedbackMessages, sourceAssets, transcripts, analyses, creators, creatorProfiles, creatorInsights, profileVersions } from "@/lib/db/schema";
 import { json, jsonError, parseJsonField } from "@/lib/api-utils";
-import { eq } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
+import { SUGGESTION_DRAFT } from "@/lib/repositories/version-manager";
 
 export async function GET(
   _req: Request,
@@ -20,39 +21,62 @@ export async function GET(
   const [transcript] = asset ? await db.select().from(transcripts).where(eq(transcripts.assetId, asset.id)) : [null, null];
   const [analysis] = asset ? await db.select().from(analyses).where(eq(analyses.assetId, asset.id)) : [null, null];
 
-  // Load profile suggestion for this asset
+  // Load latest pending suggestion draft for this asset's creator
   let profileSuggestion = null;
-  if (asset) {
-    const [sugg] = await db
+  if (asset && asset.creatorId) {
+    const drafts = await db
       .select()
-      .from(profileSuggestions)
-      .where(eq(profileSuggestions.assetId, asset.id));
-    if (sugg) {
-      profileSuggestion = {
-        ...sugg,
-        suggestions: parseJsonField(sugg.suggestions, {}),
-      };
+      .from(profileVersions)
+      .where(
+        and(
+          eq(profileVersions.creatorId, asset.creatorId),
+          eq(profileVersions.triggerType, SUGGESTION_DRAFT)
+        )
+      )
+      .orderBy(desc(profileVersions.createdAt))
+      .limit(1);
+    const latest = drafts[0];
+    if (latest) {
+      const snapshot = parseJsonField(latest.snapshot, {} as Record<string, unknown>);
+      if (snapshot && typeof snapshot === "object" && "suggestions" in snapshot) {
+        profileSuggestion = {
+          id: latest.id,
+          suggestions: snapshot.suggestions,
+          status: "pending",
+        };
+      }
     }
   }
 
-  // Load creator profile
+  // Load creator profile with insights
   let creatorProfile = null;
   if (task.creatorId) {
     const [c] = await db.select().from(creators).where(eq(creators.id, task.creatorId));
     const [p] = await db.select().from(creatorProfiles).where(eq(creatorProfiles.creatorId, task.creatorId));
     if (c && p) {
+      const insightRows = await db
+        .select()
+        .from(creatorInsights)
+        .where(eq(creatorInsights.creatorId, task.creatorId))
+        .orderBy(creatorInsights.createdAt);
+
       creatorProfile = {
         id: c.id,
         name: c.name,
         positioning: p.positioning,
-        domain: p.domain,
         tone: parseJsonField<string[]>(p.tone, []),
         beliefs: parseJsonField<string[]>(p.beliefs, []),
-        cases: parseJsonField<string[]>(p.cases, []),
-        commonPatterns: parseJsonField<string[]>(p.commonPatterns, []),
+        structures: parseJsonField<string[]>(p.structures, []),
         avoidPhrases: parseJsonField<string[]>(p.avoidPhrases, []),
         titlePreference: p.titlePreference,
-        platformRules: parseJsonField<Record<string, string>>(p.platformRules, {}),
+        catchphrases: parseJsonField<string[]>(p.catchphrases, []),
+        insights: insightRows.map((row) => ({
+          id: row.id,
+          content: row.content,
+          tags: parseJsonField<string[]>(row.tags, []),
+          sourceAssetId: row.sourceAssetId ?? undefined,
+          createdAt: row.createdAt,
+        })),
       };
     }
   }

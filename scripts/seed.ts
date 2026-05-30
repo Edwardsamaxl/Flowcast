@@ -4,64 +4,166 @@ import * as schema from "../lib/db/schema";
 async function seed() {
   const db = await initDb();
 
+  // ---- Default User ----
+  await db.insert(schema.users).values([
+    { id: "default", createdAt: Math.floor(Date.now() / 1000), updatedAt: Math.floor(Date.now() / 1000) },
+  ]);
+
   // ---- Creators ----
   const c1 = "creator_01";
   const c2 = "creator_02";
 
   await db.insert(schema.creators).values([
-    { id: c1, name: "小水同学" },
-    { id: c2, name: "Russell" },
+    { id: c1, userId: "default", name: "小水同学" },
+    { id: c2, userId: "default", name: "Russell" },
   ]);
 
   // ---- Creator Profiles ----
+  // positioning now includes domain. beliefs now includes cases.
   await db.insert(schema.creatorProfiles).values([
     {
       id: "profile_01",
       creatorId: c1,
-      positioning: "科技产品测评博主，擅长用生活化语言拆解复杂技术",
-      domain: "数码科技 / 消费电子",
+      positioning: "科技产品测评博主，擅长用生活化语言拆解复杂技术 / 数码科技 / 消费电子",
       tone: JSON.stringify(["专业但不晦涩", "幽默自嘲", "接地气"]),
-      beliefs: JSON.stringify(["好产品值得被看见", "消费者有知情权", "参数之外是体验"]),
-      cases: JSON.stringify([
+      beliefs: JSON.stringify([
+        "好产品值得被看见",
+        "消费者有知情权",
+        "参数之外是体验",
         "iPhone 15 Pro 深度测评：钛金属到底轻了多少",
         "小米 SU7 试驾：20 万级电车的新卷王",
         "AirPods Pro 2 三年后还值不值得买",
       ]),
-      commonPatterns: JSON.stringify([
+      structures: JSON.stringify([
         "痛点开场 → 参数对比 → 真实体验 → 购买建议",
         "反常识结论 + 数据支撑",
       ]),
       avoidPhrases: JSON.stringify(["绝对最好", "碾压", "吊打", "智商税"]),
       titlePreference: "悬念式 + 数字对比，例如「XX 天后，我发现……」",
-      platformRules: JSON.stringify({
-        小红书: "封面要有人物表情，标题不超过 20 字",
-        bilibili: "前 15 秒必须有冲突点",
-        公众号: "段落短，多用小标题",
-      }),
+      catchphrases: JSON.stringify(["先说结论", "不吹不黑"]),
     },
     {
       id: "profile_02",
       creatorId: c2,
-      positioning: "独立开发者 / AI 工具猎手，分享效率工作流",
-      domain: "AI / 开发者工具 / 效率软件",
+      positioning: "独立开发者 / AI 工具猎手，分享效率工作流 / AI / 开发者工具 / 效率软件",
       tone: JSON.stringify(["冷静理性", "极简主义", "实操导向"]),
-      beliefs: JSON.stringify(["工具应该隐形", "自动化一切重复劳动", "Less is more"]),
-      cases: JSON.stringify([
+      beliefs: JSON.stringify([
+        "工具应该隐形",
+        "自动化一切重复劳动",
+        "Less is more",
         "我用 Claude 3 搭建了一个自动写周报的系统",
         "Notion + Make 自动化：从 2 小时到 5 分钟",
         "为什么我从 VS Code 换成了 Cursor",
       ]),
-      commonPatterns: JSON.stringify([
+      structures: JSON.stringify([
         "问题定义 → 方案对比 → 实操演示 → 模板分享",
         "截图为主，文字为辅",
       ]),
       avoidPhrases: JSON.stringify(["颠覆", "革命性", "未来已来", "全网首发"]),
       titlePreference: "直接陈述收益，例如「如何用 XX 节省 YY 时间」",
-      platformRules: JSON.stringify({
-        即刻: "短段落，多用列表",
-        Twitter: "一条一个观点，配图三张",
-        公众号: "代码块必须可复现",
-      }),
+      catchphrases: JSON.stringify(["直接说结论", "上数据"]),
+    },
+  ]);
+
+  // ---- Creator Insights ----
+  await db.insert(schema.creatorInsights).values([
+    {
+      id: "insight_01",
+      creatorId: c1,
+      content: "特别喜欢用实际产品握持感受作为开场切入点",
+      tags: JSON.stringify(["开场", "结构"]),
+      sourceAssetId: "asset_01",
+    },
+    {
+      id: "insight_02",
+      creatorId: c1,
+      content: "厌恶一切带有攻击性的竞品对比措辞，即使是事实",
+      tags: JSON.stringify(["禁忌", "语气"]),
+      sourceAssetId: null,
+    },
+    {
+      id: "insight_03",
+      creatorId: c2,
+      content: "习惯在视频结尾放一个可复制的配置链接或模板",
+      tags: JSON.stringify(["结尾", "互动"]),
+      sourceAssetId: "asset_02",
+    },
+  ]);
+
+  // ---- User Platform Rules ----
+  await db.insert(schema.userPlatformRules).values([
+    {
+      id: "rule_xhs",
+      userId: "default",
+      platformKey: "xiaohongshu",
+      ruleTemplate: "短段落，强场景，标题直接点出痛点，转化要轻，不使用夸张承诺。",
+      promptOverride: "",
+      isActive: 1,
+      sortOrder: 0,
+    },
+    {
+      id: "rule_douyin",
+      userId: "default",
+      platformKey: "douyin",
+      ruleTemplate: "口播节奏强，开头抓人，适合30-60秒短视频脚本，口语化，有互动感。",
+      promptOverride: "",
+      isActive: 1,
+      sortOrder: 1,
+    },
+    {
+      id: "rule_bilibili",
+      userId: "default",
+      platformKey: "bilibili",
+      ruleTemplate: "结构完整，信息密度高，适合长视频简介和动态文案，允许适度玩梗。",
+      promptOverride: "",
+      isActive: 1,
+      sortOrder: 2,
+    },
+    {
+      id: "rule_zhihu",
+      userId: "default",
+      platformKey: "zhihu",
+      ruleTemplate: "结论先行，结构完整，强调方法论和可信判断，弱化营销感。",
+      promptOverride: "",
+      isActive: 1,
+      sortOrder: 3,
+    },
+    {
+      id: "rule_x",
+      userId: "default",
+      platformKey: "x",
+      ruleTemplate: "短句为主，观点密度高，开头抓人，口语化，适合连续观点输出。",
+      promptOverride: "",
+      isActive: 1,
+      sortOrder: 4,
+    },
+    // Custom platforms from old seed data
+    {
+      id: "rule_gzh",
+      userId: "default",
+      platformKey: "公众号",
+      ruleTemplate: "段落短，多用小标题",
+      promptOverride: "",
+      isActive: 1,
+      sortOrder: 5,
+    },
+    {
+      id: "rule_jike",
+      userId: "default",
+      platformKey: "即刻",
+      ruleTemplate: "短段落，多用列表",
+      promptOverride: "",
+      isActive: 1,
+      sortOrder: 6,
+    },
+    {
+      id: "rule_twitter",
+      userId: "default",
+      platformKey: "Twitter",
+      ruleTemplate: "一条一个观点，配图三张",
+      promptOverride: "",
+      isActive: 1,
+      sortOrder: 7,
     },
   ]);
 
@@ -76,7 +178,6 @@ async function seed() {
       creatorId: c1,
       type: "video",
       title: "iPhone 15 Pro 三个月真实体验",
-      source: "B站直播回放",
       filePath: "/storage/assets/iphone15pro.mp4",
       duration: "32:15",
       status: "analyzed",
@@ -86,7 +187,6 @@ async function seed() {
       creatorId: c2,
       type: "audio",
       title: "独立开发者播客第 12 期：AI 编程工具横评",
-      source: "小宇宙录播",
       filePath: "/storage/assets/podcast_ep12.mp3",
       duration: "58:42",
       status: "analyzed",
@@ -96,7 +196,6 @@ async function seed() {
       creatorId: c1,
       type: "text",
       title: "小红书爆款笔记拆解：3C 类",
-      source: "飞书文档",
       filePath: "/storage/assets/xhs_3c_notes.md",
       duration: "",
       status: "analyzed",
@@ -121,7 +220,7 @@ async function seed() {
       id: "trans_02",
       assetId: a2,
       fullText:
-        "这期播客我们聊 AI 编程工具。我过去一个月深度使用了 Cursor、GitHub Copilot 和 Codeium。Cursor 的优势是上下文理解，特别是当你打开整个项目时，它能跨文件推理。Copilot 还是老问题：单行补极强，但架构层面帮不上忙。Codeium 免费版已经够用，但企业级功能缺失。",
+        "这期播客我们聊 AI 编程工具。我过去一个月深度使用了 Cursor、GitHub Copilot 和 Codeium。Cursor 的优势是上下文理解，特别是当你打开整个项目时，它能跨文件推理。Copilot 还是老问题：单行补强强，但架构层面帮不上忙。Codeium 免费版已经够用，但企业级功能缺失。",
       segments: JSON.stringify([
         { start: 0, end: 30, text: "开场 + 工具清单" },
         { start: 30, end: 180, text: "Cursor 深度体验" },
@@ -192,7 +291,7 @@ async function seed() {
       ]),
       quotes: JSON.stringify([
         "Cursor 的优势是上下文理解，特别是当你打开整个项目时",
-        "Copilot 还是老问题：单行补极强，但架构层面帮不上忙",
+        "Copilot 还是老问题：单行补强强，但架构层面帮不上忙",
       ]),
       contentAngles: JSON.stringify([
         "实测对比：同一个功能用三个工具各写一遍",
@@ -246,7 +345,7 @@ async function seed() {
       assetId: a1,
       creatorId: c1,
       title: "iPhone 15 Pro 深度体验 → 多平台分发",
-      platforms: JSON.stringify(["小红书", "公众号", "微博"]),
+      platforms: JSON.stringify(["xiaohongshu", "公众号", "微博"]),
       status: "completed",
     },
     {
@@ -264,7 +363,7 @@ async function seed() {
     {
       id: "draft_01",
       taskId: t1,
-      platform: "小红书",
+      platform: "xiaohongshu",
       title: "钛金属 iPhone 用了 90 天，我后悔了",
       content:
         "后悔没早买？不，后悔高估了它。\n\n📱 先说大家最关心的：\n轻了 19g，但指纹收集器实锤\n5 倍长焦白天封神，夜景翻车\n续航多 1h，功劳可能是系统而非电池\n\n💡 购买建议：\n14 Pro 用户 → 可以等等\n13 及更早 → 值得升级\n摄影党 → 建议等 16\n\n#iPhone15Pro #数码测评 #手机摄影",
@@ -296,31 +395,6 @@ async function seed() {
     },
   ]);
 
-  // ---- Profile Suggestions ----
-  await db.insert(schema.profileSuggestions).values([
-    {
-      id: "suggest_01",
-      assetId: a1,
-      creatorId: c1,
-      suggestions: JSON.stringify({
-        tone: ["增加「开箱仪式感」描述"],
-        cases: ["补充安卓旗舰对比案例"],
-        commonPatterns: ["结尾加入「如果这期对你有用」互动话术"],
-      }),
-      status: "pending",
-    },
-    {
-      id: "suggest_02",
-      assetId: a2,
-      creatorId: c2,
-      suggestions: JSON.stringify({
-        beliefs: ["增加「AI 不会取代程序员，但会用 AI 的程序员会取代不用 AI 的」"],
-        cases: ["补充失败案例：AI 生成代码出 bug 的经历"],
-      }),
-      status: "applied",
-    },
-  ]);
-
   // ---- Feedback Messages ----
   await db.insert(schema.feedbackMessages).values([
     {
@@ -341,6 +415,7 @@ async function seed() {
     },
   ]);
 
+  saveToDisk();
   closeDb();
   console.log("Seed completed.");
 }

@@ -90,9 +90,12 @@
 
     .pain{display:grid;grid-template-columns:40vw 1fr;gap:3vw;height:100%;padding-top:10.4vh}
     .pain-left{display:grid;grid-template-rows:auto auto 1fr;min-height:0}
-    .pain-list{display:grid;gap:1.1vh;margin-top:3.6vh}
-    .pain-item{display:grid;grid-template-columns:2.1vw 1fr;gap:1vw;border-top:1px solid var(--line);padding:1.4vh 0;font-size:1.18vw;line-height:1.48;font-weight:400}
-    .xmark{width:1.42vw;height:1.42vw;background:var(--accent);color:var(--accent-on);display:grid;place-items:center;font-family:var(--mono);font-size:.82vw;font-weight:700;margin-top:.35vh}
+    .pain-list{display:grid;gap:1.6vh;margin-top:3.6vh}
+    .pain-item{display:grid;grid-template-columns:2.1vw 1fr;gap:1.2vw;border-top:1px solid var(--line);padding:2vh 0;font-size:1.35vw;line-height:1.55;font-weight:500;letter-spacing:.01em}
+    .xmark{width:1.5vw;height:1.5vw;background:var(--accent);border-radius:50%;display:grid;place-items:center;position:relative;align-self:start;margin-top:.25vh}
+    .xmark::before,.xmark::after{content:'';position:absolute;width:55%;height:2px;background:var(--accent-on);border-radius:1px}
+    .xmark::before{transform:rotate(45deg)}
+    .xmark::after{transform:rotate(-45deg)}
     .pain-note{align-self:end;width:34vw;border-top:2px solid var(--ink);padding-top:1.6vh;margin-bottom:7vh;color:#343431}
     .proof-stack{display:grid;grid-template-rows:auto auto 1fr;gap:1.65vh;min-height:0}
     .competitor,.product-proof{border:1px solid var(--line);background:white;padding:.9vh .8vw}
@@ -162,8 +165,65 @@
       </div>
     </section>
 
+    <section class="slide" data-title="麻烦与竞品">
+      <div class="chrome"><span>Pain Point + Competitor</span><span>02 / 06</span></div>
+      <div class="pain">
+        <div class="pain-left">
+          <div class="kicker">创作者的麻烦 + 竞品分析</div>
+          <h2 class="h-xl" style="margin-top:1.4vh;font-size:min(4.7vw,8.4vh)">多平台分发是未来趋势</h2>
+          <div class="pain-list">
+            <div class="pain-item"><span class="xmark"></span><span>中国短视频创作者账号的规模达到了16.2亿个，日均产出1.3亿条</span></div>
+            <div class="pain-item"><span class="xmark"></span><span>不同平台语气、长度、结构、标题逻辑都不同</span></div>
+            <div class="pain-item"><span class="xmark"></span><span>创作者通常没时间维护完整人设和平台风格</span></div>
+          </div>
+          <p class="lead pain-note">这不是“再做一个改写器”，而是把创作者长期重复的适配劳动，收进一个可复用的工作流。</p>
+        </div>
+        <div class="proof-stack">
+          <div class="wall-label"><span>竞品输出截图</span><span>failure evidence</span></div>
+          <div class="competitor">
+            <div class="competitor-shot"><img src="../html-images/竞品/竞品展示.png" alt="竞品展示截图"></div>
+            <div class="critique-grid">
+              <div class="critique">AI 味重</div>
+              <div class="critique">不可直接发布</div>
+              <div class="critique">缺少个人风格</div>
+              <div class="critique">平台适配弱</div>
+            </div>
+          </div>
+          <div>
+            <div class="wall-label"><span>Flowcast 内容转写示例</span><span>product output</span></div>
+            <div class="product-proof">
+              <div class="product-shot"><img src="../html-images/产品图/内容转写示例.png" alt="Flowcast 内容转写示例截图"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="创业机会">
+      <div class="chrome"><span>Startup Opportunity</span><span>03 / 06</span></div>
+      <div class="abs-title" style="width:62vw">
+        <div class="kicker">为什么这是创业机会</div>
+        <h2 class="h-xl" style="font-size:min(4.5vw,8vh);margin-top:1.2vh">这不是一次性工具，<br>而是可持续工作流</h2>
+      </div>
+      <div class="opportunity">
+        <div class="radar" aria-label="五维机会判断图">
+          <div class="radar-visual">
+            <img class="dimension-img" src="../html-images/生成图/flowcast-opportunity-dimensions.png" alt="Flowcast 五维机会判断图">
+          </div>
+          <div class="radar-cap"><span>Flowcast</span><span>Opportunity Map</span></div>
+        </div>
+        <div class="reason-list">
+          <div class="reason hero-reason"><span class="idx">01</span><strong>高频</strong><p>只要持续创作，就持续需要内容沉淀和转写</p></div>
+          <div class="reason"><span class="idx">02</span><strong>明确用户</strong><p>所有想在多平台运营的创作者</p></div>
+          <div class="reason"><span class="idx">03</span><strong>更高效</strong><p>替代手动改写、整理人设、重复适配</p></div>
+          <div class="reason"><span class="idx">04</span><strong>付费能力</strong><p>自媒体博主愿意为效率提升付费（剪映+Capcup年营收近百亿元）</p></div>
+          <div class="reason"><span class="idx">05</span><strong>可衡量</strong><p>结果能被创作者主观判断，也能被平台数据反馈</p></div>
+        </div>
+      </div>
+    </section>
+
     <section class="slide" data-title="热爱与擅长">
-      <div class="chrome"><span>Founder Fit</span><span>02 / 06</span></div>
+      <div class="chrome"><span>Founder Fit</span><span>04 / 06</span></div>
       <div class="two-col">
         <div>
           <div class="kicker">热爱与擅长</div>
@@ -196,7 +256,7 @@
     </section>
 
     <section class="slide" data-title="需求分析">
-      <div class="chrome"><span>Demand Validation</span><span>03 / 06</span></div>
+      <div class="chrome"><span>Demand Validation</span><span>05 / 06</span></div>
       <div class="research">
         <div class="research-top">
           <div>
@@ -238,63 +298,6 @@
               <div class="chat"><img src="../html-images/产品调研/微信交流截图/西楚.png" alt="西楚微信交流截图"></div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="slide" data-title="麻烦与竞品">
-      <div class="chrome"><span>Pain Point + Competitor</span><span>04 / 06</span></div>
-      <div class="pain">
-        <div class="pain-left">
-          <div class="kicker">创作者的麻烦 + 竞品分析</div>
-          <h2 class="h-xl" style="margin-top:1.4vh;font-size:min(4.7vw,8.4vh)">多平台分发是未来趋势</h2>
-          <div class="pain-list">
-            <div class="pain-item"><span class="xmark">×</span><span>一篇内容要适配 X、小红书、公众号、抖音等平台。</span></div>
-            <div class="pain-item"><span class="xmark">×</span><span>不同平台语气、长度、结构、标题逻辑都不同。</span></div>
-            <div class="pain-item"><span class="xmark">×</span><span>创作者通常没时间维护完整人设和平台风格。</span></div>
-          </div>
-          <p class="lead pain-note">这不是“再做一个改写器”，而是把创作者长期重复的适配劳动，收进一个可复用的工作流。</p>
-        </div>
-        <div class="proof-stack">
-          <div class="wall-label"><span>竞品输出截图</span><span>failure evidence</span></div>
-          <div class="competitor">
-            <div class="competitor-shot"><img src="../html-images/竞品/竞品展示.png" alt="竞品展示截图"></div>
-            <div class="critique-grid">
-              <div class="critique">AI 味重</div>
-              <div class="critique">不可直接发布</div>
-              <div class="critique">缺少个人风格</div>
-              <div class="critique">平台适配弱</div>
-            </div>
-          </div>
-          <div>
-            <div class="wall-label"><span>Flowcast 内容转写示例</span><span>product output</span></div>
-            <div class="product-proof">
-              <div class="product-shot"><img src="../html-images/产品图/内容转写示例.png" alt="Flowcast 内容转写示例截图"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="slide" data-title="创业机会">
-      <div class="chrome"><span>Startup Opportunity</span><span>05 / 06</span></div>
-      <div class="abs-title" style="width:62vw">
-        <div class="kicker">为什么这是创业机会</div>
-        <h2 class="h-xl" style="font-size:min(4.5vw,8vh);margin-top:1.2vh">这不是一次性工具，<br>而是可持续工作流</h2>
-      </div>
-      <div class="opportunity">
-        <div class="radar" aria-label="五维机会判断图">
-          <div class="radar-visual">
-            <img class="dimension-img" src="../html-images/生成图/flowcast-opportunity-dimensions.png" alt="Flowcast 五维机会判断图">
-          </div>
-          <div class="radar-cap"><span>Flowcast</span><span>Opportunity Map</span></div>
-        </div>
-        <div class="reason-list">
-          <div class="reason hero-reason"><span class="idx">01</span><strong>高频</strong><p>只要持续创作，就持续需要内容沉淀和转写。</p></div>
-          <div class="reason"><span class="idx">02</span><strong>明确用户</strong><p>有跨平台增长需求的创作者。</p></div>
-          <div class="reason"><span class="idx">03</span><strong>更高效</strong><p>替代手动改写、整理人设、重复适配。</p></div>
-          <div class="reason"><span class="idx">04</span><strong>有付费能力</strong><p>相比几千元人力，一个月一两百的 AI 工具更轻。</p></div>
-          <div class="reason"><span class="idx">05</span><strong>可衡量</strong><p>结果能被创作者主观判断，也能被平台数据反馈。</p></div>
         </div>
       </div>
     </section>

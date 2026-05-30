@@ -22,7 +22,7 @@ export const navItems: Array<{ href: string; label: string; icon: LucideIcon }> 
 
 // ---- Platform Meta (MVP: 5 platforms) ----
 
-export const platformMeta: Record<Platform, { name: string; rule: string; icon: LucideIcon }> = {
+export const platformMeta: Record<string, { name: string; rule: string; icon: LucideIcon }> = {
   xiaohongshu: { name: "小红书", rule: "短段落、强场景，标题直接点出痛点，转化要轻，不使用夸张承诺。", icon: MessageSquareQuote },
   douyin: { name: "抖音", rule: "口播节奏强，开头抓人，适合30-60秒短视频脚本，口语化，有互动感。", icon: Video },
   bilibili: { name: "B站", rule: "结构完整，信息密度高，适合长视频简介和动态文案，允许适度玩梗。", icon: Monitor },
@@ -72,7 +72,6 @@ export const personas = [
     name: "考研陪伴型学姐",
     status: "当前使用" as const,
     positioning: "用亲身经验帮助普通学生制定可执行的备考策略",
-    domain: "考研 / 学习方法 / 个人成长",
     tone: ["直接", "温和", "有经验感", "不制造焦虑"],
     beliefs: [
       "学习计划必须能落地，否则再完美也没有用。",
@@ -80,17 +79,13 @@ export const personas = [
       "真正的效率感来自可重复，而不是某一天的爆发。",
       "资料不是安全感，完成一轮最小闭环才是安全感。",
     ],
-    cases: ["30 天复盘表", "低状态学习日", "资料过载后的最小闭环"],
-    patterns: ["先指出误区", "解释为什么", "给具体方法", "留下行动建议"],
+    structures: ["先指出误区", "解释为什么", "给具体方法", "留下行动建议"],
     avoidPhrases: ["宝子们", "干货满满", "狠狠收藏", "逆袭上岸", "闭眼冲"],
     titlePreference: "克制、明确，直接点出问题，不用夸张承诺",
-    platformRules: {
-      xiaohongshu: "短段落，强场景，标题直接点出痛点，转化要轻。不用「宝子们」开头，用具体问题开头。",
-      douyin: "口播节奏快，开头3秒抓人。先抛反常识观点，再解释，最后给方法。",
-      bilibili: "结构完整但不要学术。允许适度玩梗和自嘲，但仍要保持专业可信。",
-      zhihu: "结论先行。用「大多数人以为...但实际是...」结构。强调方法论可复现。",
-      x: "一句话抓人。观点密度高。不用营销词汇，用真实经历开头。",
-    } as Record<Platform, string>,
+    catchphrases: [],
+    insights: [
+      { content: "创作者反复强调计划要能落地，暗示其受众对执行力有焦虑", tags: ["受众洞察", "执行力"] },
+    ],
   },
 ];
 

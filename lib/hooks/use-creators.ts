@@ -14,14 +14,21 @@ export type CreatorProfile = {
   id: string;
   creatorId: string;
   positioning: string;
-  domain: string;
   tone: string[];
   beliefs: string[];
-  cases: string[];
-  commonPatterns: string[];
+  structures: string[];
   avoidPhrases: string[];
   titlePreference: string;
-  platformRules: Record<string, string>;
+  catchphrases: string[];
+  insights: CreatorInsight[];
+};
+
+export type CreatorInsight = {
+  id: string;
+  content: string;
+  tags: string[];
+  sourceAssetId?: string;
+  createdAt: number;
 };
 
 export function useCreators() {
@@ -51,14 +58,12 @@ export function useCreators() {
   const createCreator = useCallback(async (data: {
     name: string;
     positioning?: string;
-    domain?: string;
     tone?: string[];
     beliefs?: string[];
-    cases?: string[];
-    commonPatterns?: string[];
+    structures?: string[];
     avoidPhrases?: string[];
     titlePreference?: string;
-    platformRules?: Record<string, string>;
+    catchphrases?: string[];
   }) => {
     const res = await fetch("/api/creators", {
       method: "POST",

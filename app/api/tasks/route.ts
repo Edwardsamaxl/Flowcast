@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { ensureMigrations } from "@/lib/db/migrate";
-import { getDb } from "@/lib/db";
+import { getDb, saveToDisk } from "@/lib/db";
 import { rewriteTasks, creators } from "@/lib/db/schema";
 import { uid, json, jsonError, now, parseJsonField } from "@/lib/api-utils";
 import { eq, desc, inArray } from "drizzle-orm";
@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const creatorId = url.searchParams.get("creator_id");
   const status = url.searchParams.get("status");
+  const assetId = url.searchParams.get("asset_id");
 
   const rows = await db.select().from(rewriteTasks).orderBy(desc(rewriteTasks.updatedAt));
 
@@ -19,6 +20,7 @@ export async function GET(req: NextRequest) {
   const filteredRows = rows.filter((r) => {
     if (creatorId && r.creatorId !== creatorId) return false;
     if (status && r.status !== status) return false;
+    if (assetId && r.assetId !== assetId) return false;
     return true;
   });
 
@@ -67,5 +69,6 @@ export async function POST(req: Request) {
     updatedAt: now(),
   });
 
+  saveToDisk();
   return json({ taskId }, 201);
 }

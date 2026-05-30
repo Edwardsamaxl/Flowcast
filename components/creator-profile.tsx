@@ -64,10 +64,10 @@ export function CreatorProfile({ creator, onEdit }: { creator: Creator; onEdit?:
           )}
 
           <div className="grid gap-4 md:grid-cols-2">
-            {profile.commonPatterns.length > 0 && (
+            {profile.structures.length > 0 && (
               <ProfileBlock title="常用结构">
                 <div className="flex flex-wrap gap-2">
-                  {profile.commonPatterns.map((item) => (
+                  {profile.structures.map((item) => (
                     <span key={item} className="rounded-tag bg-paper-50 px-2.5 py-1 text-xs text-ink-800">
                       {item}
                     </span>
@@ -88,6 +88,37 @@ export function CreatorProfile({ creator, onEdit }: { creator: Creator; onEdit?:
               </ProfileBlock>
             )}
           </div>
+
+          {profile.catchphrases.length > 0 && (
+            <ProfileBlock title="口头禅">
+              <div className="flex flex-wrap gap-2">
+                {profile.catchphrases.map((item) => (
+                  <span key={item} className="rounded-tag bg-paper-50 px-2.5 py-1 text-xs text-ink-800">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </ProfileBlock>
+          )}
+
+          {profile.insights.length > 0 && (
+            <ProfileBlock title="洞察">
+              <div className="space-y-2">
+                {profile.insights.map((insight) => (
+                  <div key={insight.id} className="rounded-card border border-paper-200 bg-paper-50 p-3">
+                    <p className="text-sm text-ink-800">{insight.content}</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {insight.tags.map((tag) => (
+                        <span key={tag} className="rounded-tag bg-seal-50 px-1.5 py-0.5 text-[10px] font-medium text-seal-600">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ProfileBlock>
+          )}
 
           {editing && (
             <div className="rounded-card border border-seal-500/30 bg-seal-50 p-4">

@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { SectionTitle } from "@/components/ui";
 import { sourceVideos, platformMeta } from "@/lib/data";
-import type { Platform } from "@/lib/pipeline/types";
 import { useCreators } from "@/lib/hooks/use-creators";
 import { PlatformLogo } from "@/components/platform-logos";
 
@@ -26,14 +25,13 @@ export default function LibraryPage() {
       name: c.name,
       status: "当前使用" as const,
       positioning: c.profile?.positioning || "",
-      domain: c.profile?.domain || "",
       tone: c.profile?.tone || [],
       beliefs: c.profile?.beliefs || [],
-      cases: c.profile?.cases || [],
-      patterns: c.profile?.commonPatterns || [],
+      structures: c.profile?.structures || [],
       avoidPhrases: c.profile?.avoidPhrases || [],
       titlePreference: c.profile?.titlePreference || "",
-      platformRules: (c.profile?.platformRules || {}) as Record<Platform, string>,
+      catchphrases: c.profile?.catchphrases || [],
+      insights: c.profile?.insights || [],
     }));
   }, [creators]);
 
@@ -43,14 +41,13 @@ export default function LibraryPage() {
     name: "无创作者",
     status: "当前使用" as const,
     positioning: "",
-    domain: "",
     tone: [],
     beliefs: [],
-    cases: [],
-    patterns: [],
+    structures: [],
     avoidPhrases: [],
     titlePreference: "",
-    platformRules: {} as Record<Platform, string>,
+    catchphrases: [],
+    insights: [],
   };
 
   useEffect(() => {
@@ -62,29 +59,27 @@ export default function LibraryPage() {
   const [view, setView] = useState<View>("profile");
 
   const [editingRules, setEditingRules] = useState(false);
-  const [ruleDraft, setRuleDraft] = useState<Record<Platform, string>>({} as Record<Platform, string>);
+  const [ruleDraft, setRuleDraft] = useState<Record<string, string>>({});
 
   const [editDraft, setEditDraft] = useState({
     name: "",
     positioning: "",
-    domain: "",
     tone: "",
     beliefs: "",
-    cases: "",
-    patterns: "",
+    structures: "",
     avoidPhrases: "",
+    catchphrases: "",
   });
   const [saving, setSaving] = useState(false);
 
   const [newDraft, setNewDraft] = useState({
     name: "",
     positioning: "",
-    domain: "",
     tone: "",
     beliefs: "",
-    cases: "",
-    patterns: "",
+    structures: "",
     avoidPhrases: "",
+    catchphrases: "",
   });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -97,14 +92,13 @@ export default function LibraryPage() {
     setEditDraft({
       name: activePersona.name,
       positioning: activePersona.positioning,
-      domain: activePersona.domain,
       tone: activePersona.tone.join(", "),
       beliefs: activePersona.beliefs.join("\n"),
-      cases: activePersona.cases.join("\n"),
-      patterns: activePersona.patterns.join("\n"),
+      structures: activePersona.structures.join("\n"),
       avoidPhrases: activePersona.avoidPhrases.join("\n"),
+      catchphrases: activePersona.catchphrases.join("\n"),
     });
-    setRuleDraft({ ...activePersona.platformRules });
+    setRuleDraft({});
   }, [activePersona.id]);
 
   const switchPersona = (id: string) => {
@@ -124,12 +118,11 @@ export default function LibraryPage() {
       const payload = {
         name: editDraft.name.trim(),
         positioning: editDraft.positioning,
-        domain: editDraft.domain,
         tone: editDraft.tone.split(",").map((s) => s.trim()).filter(Boolean),
         beliefs: editDraft.beliefs.split("\n").map((s) => s.trim()).filter(Boolean),
-        cases: editDraft.cases.split("\n").map((s) => s.trim()).filter(Boolean),
-        commonPatterns: editDraft.patterns.split("\n").map((s) => s.trim()).filter(Boolean),
+        structures: editDraft.structures.split("\n").map((s) => s.trim()).filter(Boolean),
         avoidPhrases: editDraft.avoidPhrases.split("\n").map((s) => s.trim()).filter(Boolean),
+        catchphrases: editDraft.catchphrases.split("\n").map((s) => s.trim()).filter(Boolean),
       };
       await updateCreator(activePersonaId, payload);
       setView("profile");
@@ -148,19 +141,15 @@ export default function LibraryPage() {
       const newId = await createCreator({
         name: newDraft.name.trim(),
         positioning: newDraft.positioning,
-        domain: newDraft.domain,
         tone: newDraft.tone.split(",").map((s) => s.trim()).filter(Boolean),
         beliefs: newDraft.beliefs.split("\n").map((s) => s.trim()).filter(Boolean),
-        cases: newDraft.cases.split("\n").map((s) => s.trim()).filter(Boolean),
-        commonPatterns: newDraft.patterns.split("\n").map((s) => s.trim()).filter(Boolean),
+        structures: newDraft.structures.split("\n").map((s) => s.trim()).filter(Boolean),
         avoidPhrases: newDraft.avoidPhrases.split("\n").map((s) => s.trim()).filter(Boolean),
-        platformRules: Object.fromEntries(
-          Object.entries(platformMeta).map(([k, v]) => [k, v.rule])
-        ) as Record<string, string>,
+        catchphrases: newDraft.catchphrases.split("\n").map((s) => s.trim()).filter(Boolean),
       });
       setActivePersonaId(newId);
       setView("profile");
-      setNewDraft({ name: "", positioning: "", domain: "", tone: "", beliefs: "", cases: "", patterns: "", avoidPhrases: "" });
+      setNewDraft({ name: "", positioning: "", tone: "", beliefs: "", structures: "", avoidPhrases: "", catchphrases: "" });
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "创建失败");
     } finally {
@@ -175,12 +164,12 @@ export default function LibraryPage() {
 
   const dimensionCount = [
     activePersona.positioning,
-    activePersona.domain,
     activePersona.tone.length > 0,
     activePersona.beliefs.length > 0,
-    activePersona.cases.length > 0,
-    activePersona.patterns.length > 0,
+    activePersona.structures.length > 0,
     activePersona.avoidPhrases.length > 0,
+    activePersona.titlePreference,
+    activePersona.catchphrases.length > 0,
   ].filter(Boolean).length;
 
   return (
@@ -230,9 +219,6 @@ export default function LibraryPage() {
             </div>
 
             <div className="mt-4 flex flex-wrap gap-1.5">
-              {activePersona.domain && (
-                <span className="rounded-tag bg-paper-50 px-2 py-0.5 text-[10px] font-medium text-ink-500">{activePersona.domain}</span>
-              )}
               {activePersona.tone.map((t) => (
                 <span key={t} className="rounded-tag bg-seal-50 px-2 py-0.5 text-[10px] font-medium text-seal-600">{t}</span>
               ))}
@@ -248,8 +234,8 @@ export default function LibraryPage() {
                 <p className="text-[10px] text-ink-400">画像维度</p>
               </div>
               <div className="rounded-card bg-paper-50 p-2.5 text-center">
-                <p className="text-lg font-semibold text-ink-950">{Object.keys(activePersona.platformRules).length}</p>
-                <p className="text-[10px] text-ink-400">平台规则</p>
+                <p className="text-lg font-semibold text-ink-950">{activePersona.insights.length}</p>
+                <p className="text-[10px] text-ink-400">洞察</p>
               </div>
             </div>
 
@@ -327,15 +313,8 @@ export default function LibraryPage() {
                       <p className="mt-2 text-sm leading-6 text-ink-800">{activePersona.positioning || "未设置"}</p>
                     </div>
 
-                    {/* Domain + Tone */}
+                    {/* Tone + Title Preference */}
                     <div className="grid gap-4 md:grid-cols-2">
-                      <div className="rounded-card border border-paper-200 bg-paper-50 p-4">
-                        <div className="flex items-center gap-2">
-                          <Tag className="size-4 text-ink-400" />
-                          <span className="text-sm font-medium text-ink-950">领域</span>
-                        </div>
-                        <p className="mt-2 text-sm text-ink-800">{activePersona.domain || "未设置"}</p>
-                      </div>
                       <div className="rounded-card border border-paper-200 bg-paper-50 p-4">
                         <div className="flex items-center gap-2">
                           <User className="size-4 text-ink-400" />
@@ -346,6 +325,13 @@ export default function LibraryPage() {
                             <span key={t} className="rounded-tag bg-seal-50 px-2 py-0.5 text-xs font-medium text-seal-600">{t}</span>
                           )) : <span className="text-sm text-ink-400">未设置</span>}
                         </div>
+                      </div>
+                      <div className="rounded-card border border-paper-200 bg-paper-50 p-4">
+                        <div className="flex items-center gap-2">
+                          <Tag className="size-4 text-ink-400" />
+                          <span className="text-sm font-medium text-ink-950">标题偏好</span>
+                        </div>
+                        <p className="mt-2 text-sm text-ink-800">{activePersona.titlePreference || "未设置"}</p>
                       </div>
                     </div>
 
@@ -370,29 +356,29 @@ export default function LibraryPage() {
                       )}
                     </div>
 
-                    {/* Cases + Patterns */}
+                    {/* Structures + Catchphrases */}
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="rounded-card border border-paper-200 bg-paper-50 p-4">
                         <div className="flex items-center gap-2">
-                          <BookOpen className="size-4 text-ink-400" />
-                          <span className="text-sm font-medium text-ink-950">常用案例</span>
-                          <span className="rounded-tag bg-paper-0 px-1.5 py-0.5 text-[10px] text-ink-400">{activePersona.cases.length}</span>
+                          <Layers className="size-4 text-ink-400" />
+                          <span className="text-sm font-medium text-ink-950">常用结构</span>
+                          <span className="rounded-tag bg-paper-0 px-1.5 py-0.5 text-[10px] text-ink-400">{activePersona.structures.length}</span>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-1.5">
-                          {activePersona.cases.length > 0 ? activePersona.cases.map((c) => (
-                            <span key={c} className="rounded-tag bg-paper-0 px-2 py-0.5 text-xs text-ink-800">{c}</span>
+                          {activePersona.structures.length > 0 ? activePersona.structures.map((p) => (
+                            <span key={p} className="rounded-tag bg-paper-0 px-2 py-0.5 text-xs text-ink-800">{p}</span>
                           )) : <span className="text-sm text-ink-400">未设置</span>}
                         </div>
                       </div>
                       <div className="rounded-card border border-paper-200 bg-paper-50 p-4">
                         <div className="flex items-center gap-2">
-                          <Layers className="size-4 text-ink-400" />
-                          <span className="text-sm font-medium text-ink-950">常用结构</span>
-                          <span className="rounded-tag bg-paper-0 px-1.5 py-0.5 text-[10px] text-ink-400">{activePersona.patterns.length}</span>
+                          <BookOpen className="size-4 text-ink-400" />
+                          <span className="text-sm font-medium text-ink-950">口头禅</span>
+                          <span className="rounded-tag bg-paper-0 px-1.5 py-0.5 text-[10px] text-ink-400">{activePersona.catchphrases.length}</span>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-1.5">
-                          {activePersona.patterns.length > 0 ? activePersona.patterns.map((p) => (
-                            <span key={p} className="rounded-tag bg-paper-0 px-2 py-0.5 text-xs text-ink-800">{p}</span>
+                          {activePersona.catchphrases.length > 0 ? activePersona.catchphrases.map((cp) => (
+                            <span key={cp} className="rounded-tag bg-paper-0 px-2 py-0.5 text-xs text-ink-800">{cp}</span>
                           )) : <span className="text-sm text-ink-400">未设置</span>}
                         </div>
                       </div>
@@ -411,6 +397,29 @@ export default function LibraryPage() {
                         )) : <span className="text-sm text-ink-400">未设置</span>}
                       </div>
                     </div>
+
+                    {/* Insights */}
+                    {activePersona.insights.length > 0 && (
+                      <div className="rounded-card border border-paper-200 bg-paper-50 p-4">
+                        <div className="flex items-center gap-2">
+                          <Lightbulb className="size-4 text-ink-400" />
+                          <span className="text-sm font-medium text-ink-950">洞察</span>
+                          <span className="rounded-tag bg-paper-0 px-1.5 py-0.5 text-[10px] text-ink-400">{activePersona.insights.length}</span>
+                        </div>
+                        <div className="mt-3 space-y-2">
+                          {activePersona.insights.map((insight) => (
+                            <div key={insight.id} className="rounded-card border border-paper-200 bg-paper-0 p-3">
+                              <p className="text-sm text-ink-800">{insight.content}</p>
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {insight.tags.map((tag) => (
+                                  <span key={tag} className="rounded-tag bg-seal-50 px-1.5 py-0.5 text-[10px] font-medium text-seal-600">{tag}</span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </section>
@@ -423,9 +432,8 @@ export default function LibraryPage() {
                     <button
                       onClick={() => {
                         if (editingRules) {
-                          updateCreator(activePersonaId, { platformRules: ruleDraft }).catch(() => {});
-                        } else {
-                          setRuleDraft({ ...activePersona.platformRules });
+                          // In the new architecture, platform rules are stored in userPlatformRules.
+                          // For now, we just toggle editing state.
                         }
                         setEditingRules((v) => !v);
                       }}
@@ -438,9 +446,8 @@ export default function LibraryPage() {
                     </button>
                   </div>
                   <div className="mt-4 grid gap-3">
-                    {(Object.keys(platformMeta) as Platform[]).map((key) => {
-                      const meta = platformMeta[key];
-                      const rule = editingRules ? ruleDraft[key] : (activePersona.platformRules[key] || meta.rule);
+                    {Object.entries(platformMeta).map(([key, meta]) => {
+                      const rule = meta.rule;
                       return (
                         <article key={key} className="rounded-card border border-paper-200 bg-paper-50 p-4">
                           <div className="flex items-center gap-2">
@@ -450,7 +457,7 @@ export default function LibraryPage() {
                           {editingRules ? (
                             <textarea
                               className="mt-2 w-full min-h-[60px] resize-none rounded-card border border-paper-200 bg-paper-0 p-3 text-sm leading-6 outline-none focus-visible:border-seal-500"
-                              value={rule}
+                              value={ruleDraft[key] ?? rule}
                               onChange={(e) => setRuleDraft((prev) => ({ ...prev, [key]: e.target.value }))}
                             />
                           ) : (
@@ -490,16 +497,13 @@ export default function LibraryPage() {
                 </div>
 
                 <div className="mt-5 grid gap-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField label="名称" value={editDraft.name} onChange={(v) => setEditDraft((d) => ({ ...d, name: v }))} />
-                    <FormField label="领域" value={editDraft.domain} onChange={(v) => setEditDraft((d) => ({ ...d, domain: v }))} />
-                  </div>
+                  <FormField label="名称" value={editDraft.name} onChange={(v) => setEditDraft((d) => ({ ...d, name: v }))} />
                   <FormField label="定位" value={editDraft.positioning} onChange={(v) => setEditDraft((d) => ({ ...d, positioning: v }))} />
                   <FormField label="语气特征（逗号分隔）" value={editDraft.tone} onChange={(v) => setEditDraft((d) => ({ ...d, tone: v }))} />
                   <FormField label="高频观点（每行一条）" value={editDraft.beliefs} onChange={(v) => setEditDraft((d) => ({ ...d, beliefs: v }))} textarea />
                   <div className="grid gap-4 md:grid-cols-2">
-                    <FormField label="常用案例（每行一个）" value={editDraft.cases} onChange={(v) => setEditDraft((d) => ({ ...d, cases: v }))} textarea />
-                    <FormField label="常用结构（每行一个）" value={editDraft.patterns} onChange={(v) => setEditDraft((d) => ({ ...d, patterns: v }))} textarea />
+                    <FormField label="常用结构（每行一个）" value={editDraft.structures} onChange={(v) => setEditDraft((d) => ({ ...d, structures: v }))} textarea />
+                    <FormField label="口头禅（每行一个）" value={editDraft.catchphrases} onChange={(v) => setEditDraft((d) => ({ ...d, catchphrases: v }))} textarea />
                   </div>
                   <FormField label="禁用表达（每行一个）" value={editDraft.avoidPhrases} onChange={(v) => setEditDraft((d) => ({ ...d, avoidPhrases: v }))} textarea />
                 </div>
@@ -536,16 +540,13 @@ export default function LibraryPage() {
                 )}
 
                 <div className="mt-5 grid gap-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField label="名称 *" value={newDraft.name} onChange={(v) => setNewDraft((d) => ({ ...d, name: v }))} />
-                    <FormField label="领域" value={newDraft.domain} onChange={(v) => setNewDraft((d) => ({ ...d, domain: v }))} />
-                  </div>
+                  <FormField label="名称 *" value={newDraft.name} onChange={(v) => setNewDraft((d) => ({ ...d, name: v }))} />
                   <FormField label="定位（一句话描述）" value={newDraft.positioning} onChange={(v) => setNewDraft((d) => ({ ...d, positioning: v }))} />
                   <FormField label="语气特征（逗号分隔）" value={newDraft.tone} onChange={(v) => setNewDraft((d) => ({ ...d, tone: v }))} placeholder="直接, 温和, 有经验感" />
                   <FormField label="高频观点（每行一条）" value={newDraft.beliefs} onChange={(v) => setNewDraft((d) => ({ ...d, beliefs: v }))} textarea />
                   <div className="grid gap-4 md:grid-cols-2">
-                    <FormField label="常用案例（每行一个）" value={newDraft.cases} onChange={(v) => setNewDraft((d) => ({ ...d, cases: v }))} textarea />
-                    <FormField label="常用结构（每行一个）" value={newDraft.patterns} onChange={(v) => setNewDraft((d) => ({ ...d, patterns: v }))} textarea />
+                    <FormField label="常用结构（每行一个）" value={newDraft.structures} onChange={(v) => setNewDraft((d) => ({ ...d, structures: v }))} textarea />
+                    <FormField label="口头禅（每行一个）" value={newDraft.catchphrases} onChange={(v) => setNewDraft((d) => ({ ...d, catchphrases: v }))} textarea />
                   </div>
                   <FormField label="禁用表达（每行一个）" value={newDraft.avoidPhrases} onChange={(v) => setNewDraft((d) => ({ ...d, avoidPhrases: v }))} textarea />
                 </div>

@@ -39,7 +39,13 @@
       "Bash(python -m json.tool /tmp/assets2.json)",
       "Bash(python *)",
       "Bash(node *)",
-      "Bash(npx tsx *)"
+      "Bash(npx tsx *)",
+      "Bash(sqlite3 *)",
+      "Bash(python3 *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(mkdir -p \"E:/CursorProject/Flowcast/app/api/platforms/[id]\")",
+      "Bash(mkdir -p \"E:/CursorProject/Flowcast/app/api/creators/[id]/versions/[versionId]/restore\")"
     ]
   }
 }

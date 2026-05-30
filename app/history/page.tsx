@@ -2,15 +2,16 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ArrowRight, Clock3, Video } from "lucide-react";
+import { ArrowRight, Clock3, Trash2, Video } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { SectionTitle } from "@/components/ui";
 import { useAssets } from "@/lib/hooks/use-assets";
 import { useCreators } from "@/lib/hooks/use-creators";
 
 export default function HistoryPage() {
-  const { assets, loading } = useAssets();
-  const { creators } = useCreators();
+  const { assets, loading: assetsLoading, deleteAsset } = useAssets();
+  const { creators, loading: creatorsLoading } = useCreators();
+  const loading = assetsLoading || creatorsLoading;
   const [filterCreator, setFilterCreator] = useState("all");
 
   const creatorMap = useMemo(() => {
@@ -36,6 +37,17 @@ export default function HistoryPage() {
       failed: "失败",
     };
     return map[status] || status;
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("确定删除这个素材？相关数据（转写、分析、稿件）将一并删除，不可恢复。")) return;
+    try {
+      await deleteAsset(id);
+    } catch {
+      alert("删除失败，请重试");
+    }
   };
 
   return (
@@ -83,17 +95,17 @@ export default function HistoryPage() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-card border border-paper-200 bg-paper-0 shadow-sheet">
-          <div className="hidden grid-cols-[1fr_0.5fr_0.5fr_44px] gap-4 border-b border-paper-200 bg-paper-100 px-5 py-3 text-xs font-medium text-ink-600 md:grid">
+          <div className="hidden grid-cols-[1fr_0.5fr_0.5fr_80px] gap-4 border-b border-paper-200 bg-paper-100 px-5 py-3 text-xs font-medium text-ink-600 md:grid">
             <span>视频名称</span>
             <span>创作者画像</span>
             <span>更新时间</span>
-            <span className="sr-only">打开</span>
+            <span className="text-right">操作</span>
           </div>
           {filteredAssets.map((asset) => (
             <Link
               key={asset.id}
               href={`/create?assetId=${asset.id}`}
-              className="grid gap-2 border-b border-paper-200 px-5 py-4 text-sm transition-[background-color,transform] duration-300 last:border-b-0 active:scale-[0.99] hover:bg-paper-50 md:grid-cols-[1fr_0.5fr_0.5fr_44px] md:items-center md:gap-4"
+              className="grid gap-2 border-b border-paper-200 px-5 py-4 text-sm transition-[background-color,transform] duration-300 last:border-b-0 active:scale-[0.99] hover:bg-paper-50 md:grid-cols-[1fr_0.5fr_0.5fr_80px] md:items-center md:gap-4"
             >
               <span className="flex items-center gap-3">
                 <Video className="size-4 text-ink-400 shrink-0" />
@@ -115,7 +127,17 @@ export default function HistoryPage() {
                     })
                   : "-"}
               </span>
-              <ArrowRight className="size-4 text-ink-400" />
+              <span className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => handleDelete(e, asset.id)}
+                  className="rounded p-1.5 text-ink-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                  title="删除"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+                <ArrowRight className="size-4 text-ink-400" />
+              </span>
             </Link>
           ))}
         </div>

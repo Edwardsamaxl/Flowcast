@@ -1,5 +1,5 @@
 import { ensureMigrations } from "@/lib/db/migrate";
-import { getDb } from "@/lib/db";
+import { getDb, saveToDisk } from "@/lib/db";
 import { sourceAssets, transcripts } from "@/lib/db/schema";
 import { uid, json, jsonError, now } from "@/lib/api-utils";
 import { eq } from "drizzle-orm";
@@ -23,7 +23,7 @@ export async function POST(
   const [asset] = await db.select().from(sourceAssets).where(eq(sourceAssets.id, id));
   if (!asset) return jsonError("素材不存在", 404);
 
-  if (asset.status !== "uploaded" && asset.status !== "failed") {
+  if (asset.status !== "uploaded" && asset.status !== "failed" && asset.status !== "transcribing") {
     return jsonError("素材当前状态不支持转写", 400);
   }
 
@@ -60,12 +60,14 @@ export async function POST(
       .set({ status: "transcribed", updatedAt: now() })
       .where(eq(sourceAssets.id, id));
 
+    saveToDisk();
     return json({ status: "transcribed", transcript: transcriptText });
   } catch (err) {
     await db
       .update(sourceAssets)
       .set({ status: "failed", updatedAt: now() })
       .where(eq(sourceAssets.id, id));
+    saveToDisk();
     const message = err instanceof Error ? err.message : String(err);
     return jsonError(`转写失败: ${message}`, 500);
   }

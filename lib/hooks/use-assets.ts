@@ -114,6 +114,18 @@ export function useAssets() {
     [fetchAssets]
   );
 
+  const deleteAsset = useCallback(
+    async (id: string) => {
+      const res = await fetch(`/api/assets/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Delete failed");
+      }
+      await fetchAssets();
+    },
+    [fetchAssets]
+  );
+
   return {
     assets,
     loading,
@@ -122,6 +134,7 @@ export function useAssets() {
     getAsset,
     transcribeAsset,
     analyzeAsset,
+    deleteAsset,
     refresh: fetchAssets,
   };
 }

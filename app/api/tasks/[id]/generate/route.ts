@@ -1,6 +1,6 @@
 import { ensureMigrations } from "@/lib/db/migrate";
-import { getDb } from "@/lib/db";
-import { rewriteTasks, generatedDrafts, transcripts, analyses, creators, creatorProfiles, feedbackMessages } from "@/lib/db/schema";
+import { getDb, saveToDisk } from "@/lib/db";
+import { rewriteTasks, generatedDrafts, transcripts, analyses, creators, creatorProfiles, creatorInsights, feedbackMessages, userPlatformRules } from "@/lib/db/schema";
 import { uid, json, jsonError, now, parseJsonField } from "@/lib/api-utils";
 import { eq } from "drizzle-orm";
 import { generatePlatformDraft } from "@/lib/pipeline/llm";
@@ -27,22 +27,35 @@ export async function POST(
   if (!analysis) return jsonError("素材尚未分析", 400);
 
   let creatorProfile: CreatorProfile | undefined;
+  let userId = "default";
   if (task.creatorId) {
     const [c] = await db.select().from(creators).where(eq(creators.id, task.creatorId));
     const [p] = await db.select().from(creatorProfiles).where(eq(creatorProfiles.creatorId, task.creatorId));
     if (c && p) {
+      userId = c.userId || "default";
+      const insightRows = await db
+        .select()
+        .from(creatorInsights)
+        .where(eq(creatorInsights.creatorId, task.creatorId))
+        .orderBy(creatorInsights.createdAt);
+
       creatorProfile = {
-        persona_id: c.id,
-        name: c.name,
+        id: p.id,
+        creatorId: task.creatorId,
         positioning: p.positioning,
-        domain: p.domain,
         tone: parseJsonField<string[]>(p.tone, []),
         beliefs: parseJsonField<string[]>(p.beliefs, []),
-        cases: parseJsonField<string[]>(p.cases, []),
-        common_patterns: parseJsonField<string[]>(p.commonPatterns, []),
+        structures: parseJsonField<string[]>(p.structures, []),
         avoid_phrases: parseJsonField<string[]>(p.avoidPhrases, []),
         title_preference: p.titlePreference,
-        platform_rules: parseJsonField<Record<string, string>>(p.platformRules, {}) as Record<Platform, string>,
+        catchphrases: parseJsonField<string[]>(p.catchphrases, []),
+        insights: insightRows.map((row) => ({
+          id: row.id,
+          content: row.content,
+          tags: parseJsonField<string[]>(row.tags, []),
+          sourceAssetId: row.sourceAssetId ?? undefined,
+          createdAt: row.createdAt,
+        })),
       };
     }
   }
@@ -70,16 +83,37 @@ export async function POST(
     })
     .filter((m) => m.trim().length > 0);
 
+  // Load platform rules from userPlatformRules
+  const platformRuleRows = await db
+    .select()
+    .from(userPlatformRules)
+    .where(eq(userPlatformRules.userId, userId));
+
+  const platformRuleMap = new Map<
+    string,
+    { ruleTemplate: string; promptOverride: string }
+  >();
+  for (const row of platformRuleRows) {
+    platformRuleMap.set(row.platformKey, {
+      ruleTemplate: row.ruleTemplate,
+      promptOverride: row.promptOverride,
+    });
+  }
+
   await db.update(rewriteTasks).set({ status: "generating", updatedAt: now() }).where(eq(rewriteTasks.id, id));
 
   const drafts = [];
   try {
     for (const platform of platforms) {
+      const rule = platformRuleMap.get(platform);
       const draft = await generatePlatformDraft({
         transcript: transcript.fullText,
         analysis: parsedAnalysis,
         platform: platform as Platform,
         voiceProfile: creatorProfile,
+        platformRule: rule
+          ? { ruleTemplate: rule.ruleTemplate, promptOverride: rule.promptOverride }
+          : undefined,
         feedback: draftFeedback.length > 0 ? draftFeedback : undefined,
       });
 
@@ -101,9 +135,11 @@ export async function POST(
     }
 
     await db.update(rewriteTasks).set({ status: "completed", updatedAt: now() }).where(eq(rewriteTasks.id, id));
+    saveToDisk();
     return json({ drafts });
   } catch (err) {
     await db.update(rewriteTasks).set({ status: "failed", updatedAt: now() }).where(eq(rewriteTasks.id, id));
+    saveToDisk();
     const message = err instanceof Error ? err.message : String(err);
     return jsonError(`生成失败: ${message}`, 500);
   }

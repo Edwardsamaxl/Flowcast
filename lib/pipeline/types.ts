@@ -1,4 +1,4 @@
-export type Platform = "xiaohongshu" | "douyin" | "bilibili" | "zhihu" | "x";
+export type Platform = string;
 
 export type PipelineStatus =
   | "uploaded"
@@ -31,23 +31,56 @@ export type TranscriptAnalysis = {
   risk_notes: string[];
 };
 
+export type CoreDimension =
+  | "positioning"
+  | "tone"
+  | "beliefs"
+  | "structures"
+  | "avoid_phrases"
+  | "title_preference"
+  | "catchphrases";
+
 export type CreatorProfile = {
-  persona_id: string;
-  name: string;
+  id: string;
+  creatorId: string;
   positioning: string;
-  domain?: string;
   tone: string[];
   beliefs: string[];
-  cases: string[];
-  common_patterns: string[];
+  structures: string[];
   avoid_phrases: string[];
-  title_preference?: string;
-  platform_rules: Record<Platform, string>;
+  title_preference: string;
+  catchphrases: string[];
+  insights: CreatorInsight[];
+};
+
+export type CreatorInsight = {
+  id: string;
+  content: string;
+  tags: string[];
+  sourceAssetId?: string;
+  createdAt: number;
+};
+
+// Legacy alias for backward compatibility during transition
+export type VoiceProfile = CreatorProfile;
+
+export type ProfileSuggestion = {
+  dimension?: CoreDimension;
+  type: "addition" | "modification";
+  field: string;
+  value?: string;
+  from?: string;
+  to?: string;
+};
+
+export type ProfileAnalysisResult = {
+  additions: ProfileSuggestion[];
+  modifications: ProfileSuggestion[];
+  insights: { content: string; tags: string[]; evidence?: string }[];
+  evidenceSegments: string[];
 };
 
 // Legacy alias for backward compatibility
-export type VoiceProfile = CreatorProfile;
-
 export type CreatorProfileSuggestions = {
   additions: Array<{ field: string; value: string }>;
   modifications: Array<{ field: string; from: string; to: string }>;

@@ -1,5 +1,5 @@
 import { ensureMigrations } from "@/lib/db/migrate";
-import { getDb } from "@/lib/db";
+import { getDb, saveToDisk } from "@/lib/db";
 import { rewriteTasks, feedbackMessages, generatedDrafts } from "@/lib/db/schema";
 import { uid, json, jsonError, now, parseJsonField } from "@/lib/api-utils";
 import { eq } from "drizzle-orm";
@@ -33,5 +33,6 @@ export async function POST(
     createdAt: now(),
   });
 
+  saveToDisk();
   return json({ feedbackId }, 201);
 }

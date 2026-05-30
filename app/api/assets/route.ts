@@ -3,8 +3,8 @@ import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { getEnv } from "@/lib/server/env";
 import { ensureMigrations } from "@/lib/db/migrate";
-import { getDb } from "@/lib/db";
-import { sourceAssets, transcripts, analyses, creators, creatorProfiles } from "@/lib/db/schema";
+import { getDb, saveToDisk } from "@/lib/db";
+import { sourceAssets, transcripts, analyses, creators, creatorProfiles, creatorInsights } from "@/lib/db/schema";
 import { uid, json, jsonError, now, parseJsonField } from "@/lib/api-utils";
 import { eq, desc } from "drizzle-orm";
 
@@ -24,7 +24,6 @@ async function seedMockDataIfEmpty() {
     id: uid(),
     creatorId,
     positioning: "用亲身经验帮助普通学生制定可执行的备考策略",
-    domain: "考研 / 学习方法 / 个人成长",
     tone: JSON.stringify(["直接", "温和", "有经验感", "不制造焦虑"]),
     beliefs: JSON.stringify([
       "学习计划必须能落地，否则再完美也没有用",
@@ -32,17 +31,10 @@ async function seedMockDataIfEmpty() {
       "真正的效率感来自可重复，而不是某一天的爆发",
       "资料不是安全感，完成一轮最小闭环才是安全感",
     ]),
-    cases: JSON.stringify(["30 天复盘表", "低状态学习日", "资料过载后的最小闭环"]),
-    commonPatterns: JSON.stringify(["先指出误区", "解释为什么", "给具体方法", "留下行动建议"]),
+    structures: JSON.stringify(["先指出误区", "解释为什么", "给具体方法", "留下行动建议"]),
     avoidPhrases: JSON.stringify(["宝子们", "干货满满", "狠狠收藏", "逆袭上岸", "闭眼冲"]),
     titlePreference: "克制、明确，直接点出问题，不用夸张承诺",
-    platformRules: JSON.stringify({
-      xiaohongshu: "短段落，强场景，标题直接点出痛点，转化要轻",
-      douyin: "口播节奏强，开头抓人，适合30-60秒短视频脚本",
-      bilibili: "结构完整，信息密度高，适合视频简介和动态文案",
-      zhihu: "结论先行，强调方法论和可信度，弱化营销感",
-      x: "短句为主，观点密度高，开头抓人，口语化",
-    }),
+    catchphrases: JSON.stringify([]),
     createdAt: now(),
     updatedAt: now(),
   });
@@ -212,5 +204,6 @@ export async function POST(req: NextRequest) {
   };
 
   await db.insert(sourceAssets).values(asset);
+  saveToDisk();
   return json(asset, 201);
 }

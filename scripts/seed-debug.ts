@@ -16,7 +16,7 @@ async function seed() {
 
   console.log("Inserting assets...");
   await db.insert(schema.sourceAssets).values([
-    { id: "asset_01", creatorId: "creator_01", type: "video", title: "iPhone 15 Pro 三个月真实体验", source: "B站直播回放", filePath: "/storage/assets/iphone15pro.mp4", duration: "32:15", status: "analyzed" },
+    { id: "asset_01", creatorId: "creator_01", type: "video", title: "iPhone 15 Pro 三个月真实体验", filePath: "/storage/assets/iphone15pro.mp4", duration: "32:15", status: "analyzed" },
   ]);
   r = sqlite.exec("SELECT COUNT(*) FROM source_assets");
   console.log("assets count:", r[0]?.values[0][0]);
